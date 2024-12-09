@@ -50,24 +50,29 @@ function (dojo, declare) {
 
             // Example to add a div on the game area
             document.getElementById('game_play_area').insertAdjacentHTML('beforeend', `
-                <div id="player-tables"></div>
+                <div id="myhand_wrap" class="whiteblock">
+                    <b id="myhand_label">${_('My hand')}</b>
+                    <div id="myhand">
+                        <div class="playertablecard"></div>
+                    </div>
+                </div>
             `);
             
             // Setting up player boards
-            Object.values(gamedatas.players).forEach(player => {
-                // example of setting up players boards
-                this.getPlayerPanelElement(player.id).insertAdjacentHTML('beforeend', `
-                    <div id="player-counter-${player.id}">A player counter</div>
-                `);
+            // Object.values(gamedatas.players).forEach(player => {
+            //     // example of setting up players boards
+            //     this.getPlayerPanelElement(player.id).insertAdjacentHTML('beforeend', `
+            //         <div id="player-counter-${player.id}">A player counter</div>
+            //     `);
 
                 // example of adding a div for each player
-                document.getElementById('player-tables').insertAdjacentHTML('beforeend', `
-                    <div id="player-table-${player.id}">
-                        <strong>${player.name}</strong>
-                        <div>Player zone content goes here</div>
-                    </div>
-                `);
-            });
+            //     document.getElementById('player-tables').insertAdjacentHTML('beforeend', `
+            //         <div id="player-table-${player.id}">
+            //             <strong>${player.name}</strong>
+            //             <div>Player zone content goes here</div>
+            //         </div>
+            //     `);
+            // });
             
             // TODO: Set up your game interface here, according to "gamedatas"
             
