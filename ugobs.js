@@ -15,6 +15,9 @@
  *
  */
 
+ // Constants
+ const DIRECTIONS = ['S', 'W', 'N', 'E']
+
 define([
     "dojo","dojo/_base/declare",
     "ebg/core/gamegui",
@@ -48,6 +51,10 @@ function (dojo, declare) {
         {
             console.log( "Starting game setup" );
 
+            document.getElementById('game_play_area').insertAdjacentHTML('beforeend', `
+                <div id="player-tables"></div>
+            `);
+            
             // Example to add a div on the game area
             document.getElementById('game_play_area').insertAdjacentHTML('beforeend', `
                 <div id="myhand_wrap" class="whiteblock">
@@ -59,20 +66,23 @@ function (dojo, declare) {
             `);
             
             // Setting up player boards
-            // Object.values(gamedatas.players).forEach(player => {
-            //     // example of setting up players boards
-            //     this.getPlayerPanelElement(player.id).insertAdjacentHTML('beforeend', `
-            //         <div id="player-counter-${player.id}">A player counter</div>
-            //     `);
+            Object.values(gamedatas.players).map((player, index) => {
+                // example of setting up players boards
+                this.getPlayerPanelElement(player.id).insertAdjacentHTML('beforeend', `
+                    <div id="player-counter-${player.id}">A player counter</div>
+                `);
 
                 // example of adding a div for each player
-            //     document.getElementById('player-tables').insertAdjacentHTML('beforeend', `
-            //         <div id="player-table-${player.id}">
-            //             <strong>${player.name}</strong>
-            //             <div>Player zone content goes here</div>
-            //         </div>
-            //     `);
-            // });
+                document.getElementById('player-tables').insertAdjacentHTML('beforeend', `
+                    <div class="playertable whiteblock playertable_${DIRECTIONS[index]}">
+                    <div class="playertablename" style="color:#${player.color};"><span class </span>${player.name}</div>
+                    <div class="playertablecard" id="playertablecard_${player.id}"></div>
+                    <div class="playertablename" id="hand_score_wrap_${player.id}"><span class="hand_score_label"></span> <span id="hand_score_${player.id}"></span></div>
+                </div>
+                `);
+            });
+
+            
             
             // TODO: Set up your game interface here, according to "gamedatas"
             
