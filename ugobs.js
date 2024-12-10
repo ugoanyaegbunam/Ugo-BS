@@ -31,6 +31,9 @@ function (dojo, declare) {
             // Here, you can init the global variables of your user interface
             // Example:
             // this.myGlobalValue = 0;
+            this.cardwidth = 72;
+            this.cardheight = 96;
+
 
         },
         
@@ -51,36 +54,54 @@ function (dojo, declare) {
         {
             console.log( "Starting game setup" );
 
+            const orderedPlayers = this.getOrderedPlayers(gamedatas);
+
             document.getElementById('game_play_area').insertAdjacentHTML('beforeend', `
-                <div id="player-tables"></div>
-            `);
-            
-            // Example to add a div on the game area
-            document.getElementById('game_play_area').insertAdjacentHTML('beforeend', `
-                <div id="myhand_wrap" class="whiteblock">
-                    <b id="myhand_label">${_('My hand')}</b>
-                    <div id="myhand">
-                        <div class="playertablecard"></div>
+                <div id="game_board_wrap">
+                    <div id="game_board">
+                    ${
+                        orderedPlayers.map((player, index) => `
+                        <div class="playertable whiteblock playertable_${DIRECTIONS[index]}">
+                            <div class="playertablename" style="color:#${player.color};">${player.name}</div>
+                            <div class="playertablecard" id="playertablecard_${player.id}"></div>
+                            <div class="playertablename" id="hand_score_wrap_${player.id}"><span class="hand_score_label"></span> <span id="hand_score_${player.id}"></span></div>
+                        </div>
+                        `).join('')
+                    }
                     </div>
                 </div>
-            `);
+
+                <div id="myhand_wrap" class="whiteblock">
+                    <b id="myhand_label">${_('My hand')}</b>
+                    <div id="myhand"></div>
+                </div>
+
+            `);            // // Example to add a div on the game area
+            // document.getElementById('game_play_area').insertAdjacentHTML('beforeend', `
+            //     <div id="card_stack_holder">
+            //         <b id="num_stacked_cards">${_('# of cards')}</b>
+            //         <div id="card_stack">
+            //             <div class="playertablecard playedcard"></div>
+            //         </div>
+            //     </div>
+            // `);
             
             // Setting up player boards
-            Object.values(gamedatas.players).map((player, index) => {
-                // example of setting up players boards
-                this.getPlayerPanelElement(player.id).insertAdjacentHTML('beforeend', `
-                    <div id="player-counter-${player.id}">A player counter</div>
-                `);
+            // Object.values(gamedatas.players).map((player, index) => {
+            //     // example of setting up players boards
+            //     this.getPlayerPanelElement(player.id).insertAdjacentHTML('beforeend', `
+            //         <div id="player-counter-${player.id}">A player counter</div>
+            //     `);
 
-                // example of adding a div for each player
-                document.getElementById('player-tables').insertAdjacentHTML('beforeend', `
-                    <div class="playertable whiteblock playertable_${DIRECTIONS[index]}">
-                    <div class="playertablename" style="color:#${player.color};"><span class </span>${player.name}</div>
-                    <div class="playertablecard" id="playertablecard_${player.id}"></div>
-                    <div class="playertablename" id="hand_score_wrap_${player.id}"><span class="hand_score_label"></span> <span id="hand_score_${player.id}"></span></div>
-                </div>
-                `);
-            });
+            //     // example of adding a div for each player
+            //     document.getElementById('player-tables').insertAdjacentHTML('beforeend', `
+            //         <div class="playertable whiteblock playertable_${DIRECTIONS[index]}">
+            //         <div class="playertablename" style="color:#${player.color};"><span class </span>${player.name}</div>
+            //         <div class="playertablecard" id="playertablecard_${player.id}"></div>
+            //         <div class="playertablename" id="hand_score_wrap_${player.id}"><span class="hand_score_label"></span> <span id="hand_score_${player.id}"></span></div>
+            //     </div>
+            //     `);
+            // });
 
             
             
@@ -91,6 +112,13 @@ function (dojo, declare) {
             this.setupNotifications();
 
             console.log( "Ending game setup" );
+        },
+
+        getOrderedPlayers(gamedatas) {
+            const players = Object.values(gamedatas.players).sort((a, b) => a.playerNo - b.playerNo);
+            const playerIndex = players.findIndex(player => Number(player.id) === Number(this.player_id));
+            const orderedPlayers = playerIndex > 0 ? [...players.slice(playerIndex), ...players.slice(0, playerIndex)] : players;
+            return orderedPlayers;
         },
        
 
