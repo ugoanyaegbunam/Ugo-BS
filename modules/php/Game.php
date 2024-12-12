@@ -20,9 +20,36 @@ namespace Bga\Games\UgoBS;
 
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
+
+// Suit and card data, added additional classes (suit_N) for custom CSS
+const COLORS = [
+    1 => ['name' => '<span style="color:black" class="suit_1">♠</span>'],
+    2 => ['name' => '<span style="color:red" class="suit_2">♥</span>'],
+    3 => ['name' => '<span style="color:black" class="suit_3">♣</span>'],
+    4 => ['name' => '<span style="color:red" class="suit_4">♦</span>'],
+];
+
+const VALUES_LABEL = [
+    2 => '2',
+    3 => '3',
+    4 => '4',
+    5 => '5',
+    6 => '6',
+    7 => '7',
+    8 => '8',
+    9 => '9',
+    10 => '10',
+    11 => 'J',
+    12 => 'Q',
+    13 => 'K',
+    14 => 'A'
+];
+
 class Game extends \Table
 {
     private static array $CARD_TYPES;
+    private $cards;
+
 
     /**
      * Your global variables labels:
@@ -54,6 +81,9 @@ class Game extends \Table
             ],
             // ...
         ];
+        $this->cards = $this->getNew("module.common.deck");
+        $this->cards->init("card");
+
     }
 
     /**
@@ -219,18 +249,6 @@ class Game extends \Table
         // Cards played on the table
         $result['cardsontable'] = $this->cards->getCardsInLocation('cardsontable');
 
-        // Variant settings required in js
-        $result['point_limit_variant'] = $this->getGameStateValue('point_limit_variant');
-        $result['face_value_scoring'] = $this->getGameStateValue('face_value_scoring');
-        $result['spades_scoring'] = $this->getGameStateValue('spades_scoring');
-        $result['jack_of_diamonds'] = $this->getGameStateValue('jack_of_diamonds');
-        $result['moon_variant'] = $this->getGameStateValue('moon_variant');
-        $result['pass_cycle'] = $this->getGameStateValue('pass_cycle');
-        $result['dealer'] = $this->getGameStateValue('dealer');
-        $result['no_starter_card'] = $this->getGameStateValue('no_starter_card');
-        $result['track_information'] = $this->getGameStateValue('track_information');
-
-
         return $result;
     }
 
@@ -266,6 +284,8 @@ class Game extends \Table
             ]);
         }
 
+        $remove_code = [];
+
         // Create players based on generic information.
         //
         // NOTE: You can add extra field on player table in the database (see dbmodel.sql) and initialize
@@ -280,6 +300,16 @@ class Game extends \Table
         $this->reattributeColorsBasedOnPreferences($players, $gameinfos["player_colors"]);
         $this->reloadPlayersBasicInfos();
 
+        // Create cards
+        $cards = [];
+        foreach (COLORS as $color_id => $color) // spade, heart, diamond, club
+            for ($value = 2; $value <= 14; $value++) // 2, 3, 4, ... K, A
+                if (!in_array($color_id * 100 + $value, $remove_code)) // Cards to be excluded
+                    $cards[] = ['type' => $color_id, 'type_arg' => $value, 'nbr' => 1];
+
+        $this->cards->createCards($cards, 'deck');
+        
+        
         // Init global values with their initial values.
 
         // Dummy content.
@@ -294,6 +324,20 @@ class Game extends \Table
         // $this->initStat("player", "player_teststat1", 0);
 
         // TODO: Setup the initial game situation here.
+
+        // Count the number of cards to deal
+        $player_list = $this->getObjectListFromDB("SELECT player_id id FROM player", true);
+        $deal_amount = floor($this->cards->countCardInLocation('deck') / count($player_list));
+
+        // Deal cards to each player
+        // Create deck, shuffle it and give initial cards
+        foreach ($player_list as $player_id) {
+            $cards = $this->cards->pickCards($deal_amount, 'deck', $player_id);
+
+            // Notify player about his cards
+            $this->notifyPlayer($player_id, 'newHand', '', ['cards' => $cards]);
+        }
+    
 
         // Activate first player once everything has been initialized and ready.
         $this->activeNextPlayer();

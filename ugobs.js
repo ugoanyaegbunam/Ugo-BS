@@ -16,7 +16,7 @@
  */
 
  // Constants
- const DIRECTIONS = ['S', 'W', 'N', 'E']
+ const DIRECTIONS = ['W', 'N', 'E']
 
 define([
     "dojo","dojo/_base/declare",
@@ -55,7 +55,8 @@ function (dojo, declare) {
         {
             console.log( "Starting game setup" );
 
-            const orderedPlayers = this.getOrderedPlayers(gamedatas);
+            const orderedPlayers = this.getOrderedPlayers(gamedatas).slice(-3);
+
 
             document.getElementById('game_play_area').insertAdjacentHTML('beforeend', `
                 <div id="game_board_wrap">
@@ -65,10 +66,12 @@ function (dojo, declare) {
                         <div class="playertable whiteblock playertable_${DIRECTIONS[index]}">
                             <div class="playertablename" style="color:#${player.color};">${player.name}</div>
                             <div class="playertablecard" id="playertablecard_${player.id}"></div>
-                            <div class="playertablename" id="hand_score_wrap_${player.id}"><span class="hand_score_label"></span> <span id="hand_score_${player.id}"></span></div>
                         </div>
                         `).join('')
                     }
+                    <div class="playertable whiteblock pile">
+                            <div class="playertablename" style="color:#ff0000;">Card Pile</div>
+                        </div>
                     </div>
                 </div>
 
@@ -94,11 +97,11 @@ function (dojo, declare) {
 
             // Create cards types:
             for (let color = 1; color <= 4; color++)
-                for (let value = 2; value <= 16; value++) {
+                for (let value = 2; value <= 14; value++) {
                     // Build card type id
                     const card_type_id = this.getCardUniqueId(color, value);
                     // Change card image style according to the preference option
-                    this.playerHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/BScards.jpg', card_type_id);
+                    this.playerHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards.jpg', card_type_id);
                 }
             
             // Cards in player's hand

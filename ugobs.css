@@ -144,7 +144,7 @@
     border-radius: 10px;
 }
 .playertable.larger_table {height: 160px;}
-.playertable_S {left: calc(50% - 70px); bottom: 0;}
+.pile {left: calc(50% - 70px); bottom: 0;}
 .playertable_SW {left: -5px; bottom: 0;}
 .playertable_W {left: -5px; top: 82.5px;}
 .playertable_W_X {left: -5px; top: 165px;}
