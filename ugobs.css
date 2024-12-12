@@ -73,7 +73,7 @@
     margin-top: 5px;
     width: 72px;
     height: 96px;
-    background-image: url('img/cards.jpg'); /* temp hack to see it */
+    background-image: url('img/BScards.jpg'); /* temp hack to see it */
 }
 
 /* game_play_area is 733x598 */
@@ -100,11 +100,11 @@
 }
 
 #game_board {
-    position: center;
+    position: relative;
     width: 400px;
     height: 335px;
     text-align: center;
-    margin: auto 5px auto auto;
+    margin: auto auto auto auto;
 }
 #game_board.extended {height: 500px;}
 #game_board.no_score_chart {margin: auto;}

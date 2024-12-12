@@ -21,7 +21,8 @@
 define([
     "dojo","dojo/_base/declare",
     "ebg/core/gamegui",
-    "ebg/counter"
+    "ebg/counter",
+    "ebg/stock"
 ],
 function (dojo, declare) {
     return declare("bgagame.ugobs", ebg.core.gamegui, {
@@ -31,8 +32,8 @@ function (dojo, declare) {
             // Here, you can init the global variables of your user interface
             // Example:
             // this.myGlobalValue = 0;
-            this.cardwidth = 72;
-            this.cardheight = 96;
+            this.cardwidth = 603;
+            this.cardheight = 827;
 
 
         },
@@ -73,7 +74,9 @@ function (dojo, declare) {
 
                 <div id="myhand_wrap" class="whiteblock">
                     <b id="myhand_label">${_('My hand')}</b>
-                    <div id="myhand"></div>
+                    <div id="myhand">
+                        <div class="playertablecard"></div>
+                    </div>
                 </div>
 
             `);            // // Example to add a div on the game area
