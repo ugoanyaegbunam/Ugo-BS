@@ -213,6 +213,24 @@ class Game extends \Table
 
         // TODO: Gather all information about current game situation (visible by player $current_player_id).
 
+        // Cards in player hand      
+        $result['hand'] = $this->cards->getPlayerHand($current_player_id);
+  
+        // Cards played on the table
+        $result['cardsontable'] = $this->cards->getCardsInLocation('cardsontable');
+
+        // Variant settings required in js
+        $result['point_limit_variant'] = $this->getGameStateValue('point_limit_variant');
+        $result['face_value_scoring'] = $this->getGameStateValue('face_value_scoring');
+        $result['spades_scoring'] = $this->getGameStateValue('spades_scoring');
+        $result['jack_of_diamonds'] = $this->getGameStateValue('jack_of_diamonds');
+        $result['moon_variant'] = $this->getGameStateValue('moon_variant');
+        $result['pass_cycle'] = $this->getGameStateValue('pass_cycle');
+        $result['dealer'] = $this->getGameStateValue('dealer');
+        $result['no_starter_card'] = $this->getGameStateValue('no_starter_card');
+        $result['track_information'] = $this->getGameStateValue('track_information');
+
+
         return $result;
     }
 

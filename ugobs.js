@@ -32,8 +32,8 @@ function (dojo, declare) {
             // Here, you can init the global variables of your user interface
             // Example:
             // this.myGlobalValue = 0;
-            this.cardwidth = 603;
-            this.cardheight = 827;
+            this.cardwidth = 72;
+            this.cardheight = 96;
 
 
         },
@@ -74,37 +74,49 @@ function (dojo, declare) {
 
                 <div id="myhand_wrap" class="whiteblock">
                     <b id="myhand_label">${_('My hand')}</b>
-                    <div id="myhand">
-                        <div class="playertablecard"></div>
-                    </div>
+                    <div id="myhand"></div>
                 </div>
 
-            `);            // // Example to add a div on the game area
-            // document.getElementById('game_play_area').insertAdjacentHTML('beforeend', `
-            //     <div id="card_stack_holder">
-            //         <b id="num_stacked_cards">${_('# of cards')}</b>
-            //         <div id="card_stack">
-            //             <div class="playertablecard playedcard"></div>
-            //         </div>
-            //     </div>
-            // `);
-            
-            // Setting up player boards
-            // Object.values(gamedatas.players).map((player, index) => {
-            //     // example of setting up players boards
-            //     this.getPlayerPanelElement(player.id).insertAdjacentHTML('beforeend', `
-            //         <div id="player-counter-${player.id}">A player counter</div>
-            //     `);
+            `);
 
-            //     // example of adding a div for each player
-            //     document.getElementById('player-tables').insertAdjacentHTML('beforeend', `
-            //         <div class="playertable whiteblock playertable_${DIRECTIONS[index]}">
-            //         <div class="playertablename" style="color:#${player.color};"><span class </span>${player.name}</div>
-            //         <div class="playertablecard" id="playertablecard_${player.id}"></div>
-            //         <div class="playertablename" id="hand_score_wrap_${player.id}"><span class="hand_score_label"></span> <span id="hand_score_${player.id}"></span></div>
-            //     </div>
-            //     `);
-            // });
+            // Player hand
+            this.playerHand = new ebg.stock();
+            this.playerHand.create(this, $('myhand'), this.cardwidth, this.cardheight);
+            // this.playerHand.extraClasses = 'stock_card_border card_' + this.getGameUserPreference(100);
+            this.playerHand.centerItems = true;
+            this.playerHand.image_items_per_row = 13;
+            this.playerHand.apparenceBorderWidth = '2px'; // Change border width when selected
+            this.playerHand.setSelectionMode(1); // Select only a single card
+            this.playerHand.horizontal_overlap = 28;
+            this.playerHand.item_margin = 0;
+
+            dojo.connect(this.playerHand, 'onChangeSelection', this, 'onHandCardSelect');
+
+            // Create cards types:
+            for (let color = 1; color <= 4; color++)
+                for (let value = 2; value <= 16; value++) {
+                    // Build card type id
+                    const card_type_id = this.getCardUniqueId(color, value);
+                    // Change card image style according to the preference option
+                    this.playerHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/BScards.jpg', card_type_id);
+                }
+            
+            // Cards in player's hand
+            for (let i in gamedatas.hand) {
+                const card = gamedatas.hand[i];
+                const color = card.type;
+                const value = card.type_arg;
+                this.playerHand.addToStockWithId(this.getCardUniqueId(color, value), card.id);
+            }
+            
+            // Cards played on table
+            for (let i in gamedatas.cardsontable) {
+                const card = gamedatas.cardsontable[i];
+                const color = card.type;
+                const value = card.type_arg;
+                const player_id = card.location_arg;
+                this.addTableCard(value, color, player_id, player_id);
+            }
 
             
             
@@ -214,6 +226,36 @@ function (dojo, declare) {
             script.
         
         */
+
+        onHandCardSelect: function (control_name, item_id) {
+            // Do not trigger any action when it's not the player's turn!
+            if (!this.isCurrentPlayerActive()) return;
+
+            // Check the number of cards
+            const selected_cards = this.playerHand.getSelectedItems();
+            if (selected_cards.length === 1) {
+                const card_id = selected_cards[0].id;
+                if (this.getGameUserPreference(102) == 1) { // No confirmation
+                    if (this.gamedatas.gamestate.name === 'playerTurn') {
+                        const action = "actPlayCard";
+                        if (!this.checkAction(action)) return;
+
+                        // Check whether the card is playable or not
+                        this.playerHand.unselectAll();
+                        if (document.getElementById('myhand_item_' + card_id).classList.contains('unplayable')) return;
+
+                        // Play the card
+                        this.bgaPerformAction(action, {card_id: card_id});
+                    }
+                } else if (document.getElementById('myhand_item_' + card_id).classList.contains('unplayable'))
+                    this.playerHand.unselectAll(); // Unselect unplayable cards
+            }
+        },
+    
+        // Get card unique identifier based on its color and value
+        getCardUniqueId: function (color, value) {
+            return (color - 1) * 13 + (value - 2);
+        },
 
 
         ///////////////////////////////////////////////////
