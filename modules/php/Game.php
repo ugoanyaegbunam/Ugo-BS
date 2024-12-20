@@ -66,10 +66,7 @@ class Game extends \Table
         parent::__construct();
 
         $this->initGameStateLabels([
-            "my_first_global_variable" => 10,
-            "my_second_global_variable" => 11,
-            "my_first_game_variant" => 100,
-            "my_second_game_variant" => 101,
+            "trickColor" => 10,
         ]);        
 
         self::$CARD_TYPES = [
@@ -312,8 +309,6 @@ class Game extends \Table
         
         // Init global values with their initial values.
 
-        // Dummy content.
-        $this->setGameStateInitialValue("my_first_global_variable", 0);
 
         // Init game statistics.
         //
@@ -331,6 +326,7 @@ class Game extends \Table
 
         // Deal cards to each player
         // Create deck, shuffle it and give initial cards
+        $this->cards->shuffle('deck');
         foreach ($player_list as $player_id) {
             $cards = $this->cards->pickCards($deal_amount, 'deck', $player_id);
 

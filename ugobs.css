@@ -73,7 +73,6 @@
     margin-top: 5px;
     width: 72px;
     height: 96px;
-    background-image: url('img/cards.jpg'); /* temp hack to see it */
 }
 
 /* game_play_area is 733x598 */
@@ -144,7 +143,7 @@
     border-radius: 10px;
 }
 .playertable.larger_table {height: 160px;}
-.pile {left: calc(50% - 70px); bottom: 0;}
+.playertable_S {left: calc(50% - 70px); bottom: 0;}
 .playertable_SW {left: -5px; bottom: 0;}
 .playertable_W {left: -5px; top: 82.5px;}
 .playertable_W_X {left: -5px; top: 165px;}
@@ -179,6 +178,14 @@ html.show-unplayable-cards .unplayable {filter: brightness(0.7);}
 .card_4 {background-image: url('img/cards_4.png'); border-radius: 10px;}
 .card, .playertablecard {width: 72px; height: 96px;}
 .card_2, .card_3, .card_4, .larger_card {width: 84px; height: 117px;}
+
+.cardontable {
+    position: absolute;
+    width: 72px;
+    height: 96px;
+    background-image: url('img/cards.jpg'); 
+}
+
 
 /** hand zone **/
 

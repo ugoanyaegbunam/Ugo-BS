@@ -16,7 +16,7 @@
  */
 
  // Constants
- const DIRECTIONS = ['W', 'N', 'E']
+ const DIRECTIONS = ['S', 'W', 'N', 'E']
 
 define([
     "dojo","dojo/_base/declare",
@@ -55,7 +55,7 @@ function (dojo, declare) {
         {
             console.log( "Starting game setup" );
 
-            const orderedPlayers = this.getOrderedPlayers(gamedatas).slice(-3);
+            const orderedPlayers = this.getOrderedPlayers(gamedatas);
 
 
             document.getElementById('game_play_area').insertAdjacentHTML('beforeend', `
@@ -69,9 +69,6 @@ function (dojo, declare) {
                         </div>
                         `).join('')
                     }
-                    <div class="playertable whiteblock pile">
-                            <div class="playertablename" style="color:#ff0000;">Card Pile</div>
-                        </div>
                     </div>
                 </div>
 
@@ -93,7 +90,8 @@ function (dojo, declare) {
             this.playerHand.horizontal_overlap = 28;
             this.playerHand.item_margin = 0;
 
-            dojo.connect(this.playerHand, 'onChangeSelection', this, 'onHandCardSelect');
+            // dojo.connect(this.playerHand, 'onChangeSelection', this, 'onHandCardSelect');
+            dojo.connect( this.playerHand, 'onChangeSelection', this, 'onPlayerHandSelectionChanged' );
 
             // Create cards types:
             for (let color = 1; color <= 4; color++)
@@ -132,12 +130,6 @@ function (dojo, declare) {
             console.log( "Ending game setup" );
         },
 
-        getOrderedPlayers(gamedatas) {
-            const players = Object.values(gamedatas.players).sort((a, b) => a.playerNo - b.playerNo);
-            const playerIndex = players.findIndex(player => Number(player.id) === Number(this.player_id));
-            const orderedPlayers = playerIndex > 0 ? [...players.slice(playerIndex), ...players.slice(0, playerIndex)] : players;
-            return orderedPlayers;
-        },
        
 
         ///////////////////////////////////////////////////
@@ -229,30 +221,41 @@ function (dojo, declare) {
             script.
         
         */
+        getOrderedPlayers(gamedatas) {
+            const players = Object.values(gamedatas.players).sort((a, b) => a.playerNo - b.playerNo);
+            const playerIndex = players.findIndex(player => Number(player.id) === Number(this.player_id));
+            const orderedPlayers = playerIndex > 0 ? [...players.slice(playerIndex), ...players.slice(0, playerIndex)] : players;
+            return orderedPlayers;
+        },
 
-        onHandCardSelect: function (control_name, item_id) {
-            // Do not trigger any action when it's not the player's turn!
-            if (!this.isCurrentPlayerActive()) return;
+        playCardOnTable : function(player_id, color, value, card_id) {
+            // player_id => direction
+            this.addTableCard(value, color, player_id, player_id);
 
-            // Check the number of cards
-            const selected_cards = this.playerHand.getSelectedItems();
-            if (selected_cards.length === 1) {
-                const card_id = selected_cards[0].id;
-                if (this.getGameUserPreference(102) == 1) { // No confirmation
-                    if (this.gamedatas.gamestate.name === 'playerTurn') {
-                        const action = "actPlayCard";
-                        if (!this.checkAction(action)) return;
+            if (player_id != this.player_id) {
+                // Some opponent played a card
+                // Move card from player panel
+                this.placeOnObject('cardontable_' + player_id, 'overall_player_board_' + player_id);
+            } else {
+                // You played a card. If it exists in your hand, move card from there and remove
+                // corresponding item
 
-                        // Check whether the card is playable or not
-                        this.playerHand.unselectAll();
-                        if (document.getElementById('myhand_item_' + card_id).classList.contains('unplayable')) return;
-
-                        // Play the card
-                        this.bgaPerformAction(action, {card_id: card_id});
-                    }
-                } else if (document.getElementById('myhand_item_' + card_id).classList.contains('unplayable'))
-                    this.playerHand.unselectAll(); // Unselect unplayable cards
+                if ($('myhand_item_' + card_id)) {
+                    this.placeOnObject('cardontable_' + player_id, 'myhand_item_' + card_id);
+                    this.playerHand.removeFromStockById(card_id);
+                }
             }
+
+            // In any case: move it to its final destination
+            this.slideToObject('cardontable_' + player_id, 'playertablecard_' + player_id).play();
+        },
+
+        addTableCard(value, color, card_player_id, playerTableId) {
+            const x = value - 2;
+            const y = color - 1;
+            document.getElementById('playertablecard_' + playerTableId).insertAdjacentHTML('beforeend', `
+                <div class="card cardontable" id="cardontable_${card_player_id}" style="background-position:-${x}00% -${y}00%"></div>
+            `);
         },
     
         // Get card unique identifier based on its color and value
@@ -275,6 +278,32 @@ function (dojo, declare) {
         
         */
         
+        onPlayerHandSelectionChanged: function() {
+            var items = this.playerHand.getSelectedItems();
+
+            if (items.length > 0) {
+                if (this.checkAction('actPlayCard', true)) {
+                    // Can play a card
+
+                    var card_id = items[0].id;
+
+                    console.log("on playCard "+card_id);
+                    // type is (color - 1) * 13 + (value - 2)
+                    var type = items[0].type;
+                    var color = Math.floor(type / 13) + 1;
+                    var value = type % 13 + 2;
+                    
+                    this.playCardOnTable(this.player_id,color,value,card_id);
+                    
+                    this.playerHand.unselectAll();
+                } else if (this.checkAction('actGiveCards')) {
+                    // Can give cards => let the player select some cards
+                } else {
+                    this.playerHand.unselectAll();
+                }
+            }
+        },
+
         // Example:
         
         onCardClick: function( card_id )
