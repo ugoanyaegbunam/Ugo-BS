@@ -16,6 +16,7 @@
  */
 
  // Constants
+ const PLACEMENTS = ['my', 'left', 'top', 'right']
  const DIRECTIONS = ['S', 'W', 'N', 'E']
 
 define([
@@ -59,34 +60,49 @@ function (dojo, declare) {
 
 
             document.getElementById('game_play_area').insertAdjacentHTML('beforeend', `
-                <div id="game_board_wrap">
+                <div id="game_board_wrap"> 
                     <div id="game_board">
-                    ${
-                        orderedPlayers.map((player, index) => `
-                        <div class="playertable whiteblock playertable_${DIRECTIONS[index]}">
-                            <div class="playertablename" style="color:#${player.color};">${player.name}</div>
-                            <div class="playertablecard" id="playertablecard_${player.id}"></div>
+                        <div id="bs_button">BS</div>
+                        ${
+                            orderedPlayers.map((player, index) => `
+                            <div id ="${PLACEMENTS[index]}_hand_wrap" class="whiteblock ">
+                                <b id="${PLACEMENTS[index]}_hand_label" style="color:#${player.color};">${PLACEMENTS[index] === 'my' ? "My hand" : player.name + "'s hand"}</b>
+                                <div id="${PLACEMENTS[index]}_hand"></div>
+                            </div>
+                            `).join('')
+                        }
+                        <div id="card_pile" class="whiteblock">
+                            <div class="playertablename">Card Pile</div>
+                            <div class="playertablecard"></div>
                         </div>
-                        `).join('')
-                    }
                     </div>
                 </div>
-
-                <div id="myhand_wrap" class="whiteblock">
-                    <b id="myhand_label">${_('My hand')}</b>
-                    <div id="myhand"></div>
-                </div>
-
             `);
+
+            // <div id="bs_button">BS</div>
+            // ${
+            //     orderedPlayers.map((player, index) => `
+            //     <div id ="${PLACEMENTS[index]}_hand_wrap" class="whiteblock ">
+            //         <b id="${PLACEMENTS[index]}_hand_label" style="color:#${player.color};">${player.name}'s hand</b>
+            //         <div id="${PLACEMENTS[index]}_hand"></div>
+            //     </div>
+            //     `).join('')
+            // }
+
+            // <div id="myhand_wrap" class="whiteblock">
+            //     <b id="myhand_label">${_('My hand')}</b>
+            //     <div id="myhand"></div>
+            // </div>
+
 
             // Player hand
             this.playerHand = new ebg.stock();
-            this.playerHand.create(this, $('myhand'), this.cardwidth, this.cardheight);
+            this.playerHand.create(this, $('my_hand'), this.cardwidth, this.cardheight);
             // this.playerHand.extraClasses = 'stock_card_border card_' + this.getGameUserPreference(100);
             this.playerHand.centerItems = true;
-            this.playerHand.image_items_per_row = 13;
+            this.playerHand.image_items_per_row = 7;
             this.playerHand.apparenceBorderWidth = '2px'; // Change border width when selected
-            this.playerHand.setSelectionMode(1); // Select only a single card
+            this.playerHand.setSelectionMode(2); // Select only a single card
             this.playerHand.horizontal_overlap = 28;
             this.playerHand.item_margin = 0;
 
@@ -99,7 +115,7 @@ function (dojo, declare) {
                     // Build card type id
                     const card_type_id = this.getCardUniqueId(color, value);
                     // Change card image style according to the preference option
-                    this.playerHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards.jpg', card_type_id);
+                    this.playerHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards1.jpg', card_type_id);
                 }
             
             // Cards in player's hand
@@ -253,8 +269,10 @@ function (dojo, declare) {
         addTableCard(value, color, card_player_id, playerTableId) {
             const x = value - 2;
             const y = color - 1;
+            console.log(x)
+            console.log(y)
             document.getElementById('playertablecard_' + playerTableId).insertAdjacentHTML('beforeend', `
-                <div class="card cardontable" id="cardontable_${card_player_id}" style="background-position:-${x}00% -${y}00%"></div>
+                <div class="card cardontable" id="cardontable_${card_player_id}" style="background-position:-1400% -0%"></div>
             `);
         },
     
