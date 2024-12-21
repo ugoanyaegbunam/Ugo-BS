@@ -73,7 +73,7 @@ function (dojo, declare) {
                         }
                         <div id="card_pile" class="whiteblock">
                             <div class="playertablename">Card Pile</div>
-                            <div class="playertablecard"></div>
+                            <div class="playertablecard" id="playertablecard_pile"></div>
                         </div>
                     </div>
                 </div>
@@ -256,14 +256,14 @@ function (dojo, declare) {
                 // You played a card. If it exists in your hand, move card from there and remove
                 // corresponding item
 
-                if ($('myhand_item_' + card_id)) {
-                    this.placeOnObject('cardontable_' + player_id, 'myhand_item_' + card_id);
+                if ($('my_hand_item_' + card_id)) {
+                    this.placeOnObject('cardontable_' + player_id, 'my_hand_item_' + card_id);
                     this.playerHand.removeFromStockById(card_id);
                 }
             }
 
             // In any case: move it to its final destination
-            this.slideToObject('cardontable_' + player_id, 'playertablecard_' + player_id).play();
+            this.slideToObject('cardontable_' + player_id, 'playertablecard_pile').play();
         },
 
         addTableCard(value, color, card_player_id, playerTableId) {
@@ -271,7 +271,8 @@ function (dojo, declare) {
             const y = color - 1;
             console.log(x)
             console.log(y)
-            document.getElementById('playertablecard_' + playerTableId).insertAdjacentHTML('beforeend', `
+            console.log(card_player_id)
+            document.getElementById('playertablecard_pile').insertAdjacentHTML('beforeend', `
                 <div class="card cardontable" id="cardontable_${card_player_id}" style="background-position:-1400% -0%"></div>
             `);
         },
