@@ -86,6 +86,23 @@ $machinestates = [
         "updateGameProgression" => true,
         "transitions" => ["endGame" => 99, "nextPlayer" => 2]
     ],
+    4 => [
+        "name" => "bsCall",
+        "description" => '${caller} called BS!',
+        "type" => "game",
+        "action" => "stCallBS",
+        "args" => "argCallBS",
+        "transitions" => ["givePile" => 5]
+    ],
+
+    5 => [
+        "name" => "givePile",
+        "description" => '${caller} was ${outcome}',
+        "type" => "game",
+        "action" => "stGivePile",
+        "args" => "argGivePile",
+        "transitions" => ["playerTurn" => 2]
+    ],
 
     // Final state.
     // Please do not modify (and do not overload action/args methods).

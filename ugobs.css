@@ -144,6 +144,22 @@
     margin: 5px;
     border-radius: 10px;
 }
+
+#reveal_card_pile {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    position: absolute;
+    top: 50%;
+    right: 15%;
+    transform: translate(-50%, -50%);
+    width: 110px;
+    height: 140px;
+    margin: 5px;
+    border-radius: 10px;
+}
+
 .playertable.larger_table {height: 160px;}
 .playertable_S {left: calc(50% - 70px); bottom: 0;}
 .playertable_SW {left: -5px; bottom: 0;}
@@ -187,6 +203,7 @@ html.show-unplayable-cards .unplayable {filter: brightness(0.7);}
     height: 96px;
     background-image: url('img/cards1.jpg'); 
 }
+
 
 
 /** hand zone **/

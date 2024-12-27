@@ -67,7 +67,9 @@ function (dojo, declare) {
                             orderedPlayers.map((player, index) => `
                             <div id ="${PLACEMENTS[index]}_hand_wrap" class="whiteblock ">
                                 <b id="${PLACEMENTS[index]}_hand_label" style="color:#${player.color};">${PLACEMENTS[index] === 'my' ? "My hand" : player.name + "'s hand"}</b>
-                                <div id="${PLACEMENTS[index]}_hand"></div>
+                                <div id="${PLACEMENTS[index]}_hand">
+                                    <div class="playertablecard"></div>
+                                </div>
                             </div>
                             `).join('')
                         }
@@ -75,25 +77,15 @@ function (dojo, declare) {
                             <div class="playertablename">Card Pile</div>
                             <div class="playertablecard" id="playertablecard_pile"></div>
                         </div>
+
+                        <div id="reveal_card_pile">
+                            <div class="playertablecard" id="reveal_playertablecard_pile"></div>
+                        </div>
                     </div>
                 </div>
             `);
 
-            // <div id="bs_button">BS</div>
-            // ${
-            //     orderedPlayers.map((player, index) => `
-            //     <div id ="${PLACEMENTS[index]}_hand_wrap" class="whiteblock ">
-            //         <b id="${PLACEMENTS[index]}_hand_label" style="color:#${player.color};">${player.name}'s hand</b>
-            //         <div id="${PLACEMENTS[index]}_hand"></div>
-            //     </div>
-            //     `).join('')
-            // }
-
-            // <div id="myhand_wrap" class="whiteblock">
-            //     <b id="myhand_label">${_('My hand')}</b>
-            //     <div id="myhand"></div>
-            // </div>
-
+            document.getElementById('bs_button').addEventListener('click', callBS);
 
             // Player hand
             this.playerHand = new ebg.stock();
@@ -132,7 +124,7 @@ function (dojo, declare) {
                 const color = card.type;
                 const value = card.type_arg;
                 const player_id = card.location_arg;
-                this.addTableCard(value, color, player_id, player_id);
+                this.addTableCard(value, color, player_id, player_id, "back");
             }
 
             
@@ -246,7 +238,7 @@ function (dojo, declare) {
 
         playCardOnTable : function(player_id, color, value, card_id) {
             // player_id => direction
-            this.addTableCard(value, color, player_id, player_id);
+            this.addTableCard(value, color, player_id, card_id, "back");
 
             if (player_id != this.player_id) {
                 // Some opponent played a card
@@ -257,24 +249,43 @@ function (dojo, declare) {
                 // corresponding item
 
                 if ($('my_hand_item_' + card_id)) {
-                    this.placeOnObject('cardontable_' + player_id, 'my_hand_item_' + card_id);
+                    this.placeOnObject('cardontable_' + card_id + '_' + player_id , 'my_hand_item_' + card_id);
                     this.playerHand.removeFromStockById(card_id);
                 }
             }
 
             // In any case: move it to its final destination
-            this.slideToObject('cardontable_' + player_id, 'playertablecard_pile').play();
+            this.slideToObject('cardontable_' + card_id + '_' + player_id, 'playertablecard_pile').play();
         },
 
-        addTableCard(value, color, card_player_id, playerTableId) {
+        addTableCard(value, color, card_player_id, card_id, side) {
             const x = value - 2;
             const y = color - 1;
             console.log(x)
             console.log(y)
             console.log(card_player_id)
+            if (side == 'front') {
+                document.getElementById('playertablecard_pile').insertAdjacentHTML('beforeend', `
+                    <div class="card cardontable" id="cardontable_${card_id}_${card_player_id}" style="background-position:-1400% -00%"></div>
+                `);
+            } else {
             document.getElementById('playertablecard_pile').insertAdjacentHTML('beforeend', `
-                <div class="card cardontable" id="cardontable_${card_player_id}" style="background-position:-1400% -0%"></div>
+                <div class="card cardontable" id="revealed_cardontable_${card_id}_${card_player_id}" style="background-position:-${x}00% -${y}00%"></div>
             `);
+            }
+        },
+
+        revealCardOnTable : function(player_id, color, value, card_id) {
+            this.addTableCard(value, color, player_id, player_id, "front");
+
+            // Move card from pile to side and reveal
+
+            if ($('cardontable_' + card_id + '_' + player_id)) {
+                this.placeOnObject('revealed_cardontable_' + card_id + '_' + player_id, 'cardontable_' + card_id + '_' + player_id);
+            } 
+
+
+            this.slideToObject('revealed_cardontable_' + card_id + '_' + player_id, 'revealed_playertablecard_pile').play();
         },
     
         // Get card unique identifier based on its color and value
@@ -321,6 +332,11 @@ function (dojo, declare) {
                     this.playerHand.unselectAll();
                 }
             }
+        },
+
+        callBS: function(player_id) {
+            
+
         },
 
         // Example:
