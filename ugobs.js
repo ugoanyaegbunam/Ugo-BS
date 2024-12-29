@@ -85,7 +85,7 @@ function (dojo, declare) {
                 </div>
             `);
 
-            document.getElementById('bs_button').addEventListener('click', callBS);
+            // document.getElementById('bs_button').addEventListener('click', callBS);
 
             // Player hand
             this.playerHand = new ebg.stock();
@@ -264,7 +264,7 @@ function (dojo, declare) {
             console.log(x)
             console.log(y)
             console.log(card_player_id)
-            if (side == 'front') {
+            if (side == 'back') {
                 document.getElementById('playertablecard_pile').insertAdjacentHTML('beforeend', `
                     <div class="card cardontable" id="cardontable_${card_id}_${card_player_id}" style="background-position:-1400% -00%"></div>
                 `);
