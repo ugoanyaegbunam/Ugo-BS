@@ -287,3 +287,28 @@ html.show-unplayable-cards .unplayable {filter: brightness(0.7);}
     margin: 10px auto 0 auto;
     border-radius: 10px;
 }
+
+#play_button {
+    width: 100px; /* Width of the button */
+    height: 60px; /* Height of the button */
+    background-color: green; /* Button background color */
+    color: white; /* Text color */
+    font-size: 24px; /* Font size for the text */
+    font-weight: bold; /* Bold text */
+    text-align: center; /* Center the text horizontally */
+    line-height: 60px; /* Center the text vertically */
+    border-radius: 10px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    border: 2px solid darkgreen; /* Border color */
+    box-shadow: 0 5px 0 darkgreen, 0 8px 15px rgba(0, 0, 0, 0.3); /* Shadow effect */
+    transition: transform 0.1s ease, box-shadow 0.1s ease; /* Animation for click effect */
+
+    position: absolute;
+    bottom: 30px;
+    left: 0;
+}
+
+#play_button:active {
+    transform: translateY(3px); /* Moves the button down slightly */
+    box-shadow: 0 2px 0 darkgreen, 0 4px 10px rgba(0, 0, 0, 0.3); /* Adjusts the shadow */
+}

@@ -63,6 +63,7 @@ function (dojo, declare) {
                 <div id="game_board_wrap"> 
                     <div id="game_board">
                         <div id="bs_button">BS</div>
+                        <div id="play_button">Play</div>
                         ${
                             orderedPlayers.map((player, index) => `
                             <div id ="${PLACEMENTS[index]}_hand_wrap" class="whiteblock ">
