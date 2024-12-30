@@ -93,31 +93,42 @@ class Game extends \Table
      */
     public function actPlayCard(int $card_id): void
     {
-        // Retrieve the active player ID.
-        $player_id = (int)$this->getActivePlayerId();
+        // // Retrieve the active player ID.
+        // $player_id = (int)$this->getActivePlayerId();
 
-        // check input values
-        $args = $this->argPlayerTurn();
-        $playableCardsIds = $args['playableCardsIds'];
-        if (!in_array($card_id, $playableCardsIds)) {
-            throw new \BgaUserException('Invalid card choice');
-        }
+        // // check input values
+        // $args = $this->argPlayerTurn();
+        // $playableCardsIds = $args['playableCardsIds'];
+        // if (!in_array($card_id, $playableCardsIds)) {
+        //     throw new \BgaUserException('Invalid card choice');
+        // }
 
-        // Add your game logic to play a card here.
-        $card_name = self::$CARD_TYPES[$card_id]['card_name'];
+        // // Add your game logic to play a card here.
+        // $card_name = self::$CARD_TYPES[$card_id]['card_name'];
 
-        // Notify all players about the card played.
-        $this->notifyAllPlayers("cardPlayed", clienttranslate('${player_name} plays ${card_name}'), [
-            "player_id" => $player_id,
-            "player_name" => $this->getActivePlayerName(),
-            "card_name" => $card_name,
-            "card_id" => $card_id,
-            "i18n" => ['card_name'],
-        ]);
+        // // Notify all players about the card played.
+        // $this->notifyAllPlayers("cardPlayed", clienttranslate('${player_name} plays ${card_name}'), [
+        //     "player_id" => $player_id,
+        //     "player_name" => $this->getActivePlayerName(),
+        //     "card_name" => $card_name,
+        //     "card_id" => $card_id,
+        //     "i18n" => ['card_name'],
+        // ]);
 
-        // at the end of the action, move to the next state
-        $this->gamestate->nextState("playCard");
-    }
+        // // at the end of the action, move to the next state
+        // $this->gamestate->nextState("playCard");
+        $player_id = $this->getActivePlayerId();
+        $this->cards->moveCard($card_id, 'cardsontable', $player_id);
+        // XXX check rules here
+        $currentCard = $this->cards->getCard($card_id);
+        // And notify
+        $this->notifyAllPlayers('playCard', clienttranslate('${player_name} plays ${value_displayed} ${color_displayed}'), array (
+                'i18n' => array ('color_displayed','value_displayed' ),'card_id' => $card_id,'player_id' => $player_id,
+                'player_name' => $this->getActivePlayerName(),'value' => $currentCard ['type_arg'],
+                'value_displayed' => VALUES_LABEL [$currentCard ['type_arg']],'color' => $currentCard ['type'],
+                'color_displayed' => COLORS [$currentCard ['type']] ['name'] ));
+        // Next player
+        $this->gamestate->nextState('playCard');    }
 
     public function actPass(): void
     {
@@ -301,8 +312,7 @@ class Game extends \Table
         $cards = [];
         foreach (COLORS as $color_id => $color) // spade, heart, diamond, club
             for ($value = 2; $value <= 14; $value++) // 2, 3, 4, ... K, A
-                if (!in_array($color_id * 100 + $value, $remove_code)) // Cards to be excluded
-                    $cards[] = ['type' => $color_id, 'type_arg' => $value, 'nbr' => 1];
+                $cards[] = ['type' => $color_id, 'type_arg' => $value, 'nbr' => 1];
 
         $this->cards->createCards($cards, 'deck');
         

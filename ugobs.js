@@ -92,7 +92,7 @@ function (dojo, declare) {
             this.playerHand.create(this, $('my_hand'), this.cardwidth, this.cardheight);
             // this.playerHand.extraClasses = 'stock_card_border card_' + this.getGameUserPreference(100);
             this.playerHand.centerItems = true;
-            this.playerHand.image_items_per_row = 7;
+            this.playerHand.image_items_per_row = 13;
             this.playerHand.apparenceBorderWidth = '2px'; // Change border width when selected
             this.playerHand.setSelectionMode(2); // Select only a single card
             this.playerHand.horizontal_overlap = 28;
@@ -243,7 +243,7 @@ function (dojo, declare) {
             if (player_id != this.player_id) {
                 // Some opponent played a card
                 // Move card from player panel
-                this.placeOnObject('cardontable_' + player_id, 'overall_player_board_' + player_id);
+                this.placeOnObject('cardontable_' + card_id + '_' + player_id, 'overall_player_board_' + player_id);
             } else {
                 // You played a card. If it exists in your hand, move card from there and remove
                 // corresponding item
@@ -261,9 +261,6 @@ function (dojo, declare) {
         addTableCard(value, color, card_player_id, card_id, side) {
             const x = value - 2;
             const y = color - 1;
-            console.log(x)
-            console.log(y)
-            console.log(card_player_id)
             if (side == 'back') {
                 document.getElementById('playertablecard_pile').insertAdjacentHTML('beforeend', `
                     <div class="card cardontable" id="cardontable_${card_id}_${card_player_id}" style="background-position:-1400% -00%"></div>
@@ -308,23 +305,18 @@ function (dojo, declare) {
         
         */
         
-        onPlayerHandSelectionChanged: function() {
+        onPlayerHandSelectionChanged : function() {
             var items = this.playerHand.getSelectedItems();
 
             if (items.length > 0) {
-                if (this.checkAction('actPlayCard', true)) {
+                var action = 'actPlayCard';
+                if (this.checkAction(action, true)) {
                     // Can play a card
+                    var card_id = items[0].id;                    
+                    this.bgaPerformAction(action, {
+                        card_id : card_id,
+                    });
 
-                    var card_id = items[0].id;
-
-                    console.log("on playCard "+card_id);
-                    // type is (color - 1) * 13 + (value - 2)
-                    var type = items[0].type;
-                    var color = Math.floor(type / 13) + 1;
-                    var value = type % 13 + 2;
-                    
-                    this.playCardOnTable(this.player_id,color,value,card_id);
-                    
                     this.playerHand.unselectAll();
                 } else if (this.checkAction('actGiveCards')) {
                     // Can give cards => let the player select some cards
@@ -372,17 +364,34 @@ function (dojo, declare) {
             
             // TODO: here, associate your game notifications with local methods
             
-            // Example 1: standard notification handling
-            // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
-            
-            // Example 2: standard notification handling + tell the user interface to wait
-            //            during 3 seconds after calling the method in order to let the players
-            //            see what is happening in the game.
-            // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
-            // this.notifqueue.setSynchronous( 'cardPlayed', 3000 );
-            // 
-        },  
-        
+            const notifs = [
+                ['newHand', 1],
+                ['playCard', 100],
+            ];
+    
+            notifs.forEach((notif) => {
+                dojo.subscribe(notif[0], this, `notif_${notif[0]}`);
+                this.notifqueue.setSynchronous(notif[0], notif[1]);
+            });
+
+        },
+
+        notif_newHand : function(notif) {
+            // We received a new full hand of 13 cards.
+            this.playerHand.removeAll();
+
+            for ( var i in notif.args.cards) {
+                var card = notif.args.cards[i];
+                var color = card.type;
+                var value = card.type_arg;
+                this.playerHand.addToStockWithId(this.getCardUniqueId(color, value), card.id);
+            }
+        },
+
+        notif_playCard : function(notif) {
+            // Play a card on the table
+            this.playCardOnTable(notif.args.player_id, notif.args.color, notif.args.value, notif.args.card_id);
+        },        
         // TODO: from this point and below, you can write your game notifications handling methods
         
         /*
