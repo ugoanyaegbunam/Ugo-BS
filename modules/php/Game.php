@@ -14,12 +14,12 @@
  *
  * In this PHP file, you are going to defines the rules of the game.
  */
-declare(strict_types=1);
 
 namespace Bga\Games\UgoBS;
 
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
+use \Bga\GameFramework\Actions\Types\IntArrayParam;
 
 // Suit and card data, added additional classes (suit_N) for custom CSS
 const COLORS = [
@@ -91,7 +91,7 @@ class Game extends \Table
      *
      * @throws BgaUserException
      */
-    public function actPlayCard(int $card_id): void
+    public function actPlayCard(#[IntArrayParam] array $card_ids): void
     {
         // // Retrieve the active player ID.
         // $player_id = (int)$this->getActivePlayerId();
@@ -118,15 +118,20 @@ class Game extends \Table
         // // at the end of the action, move to the next state
         // $this->gamestate->nextState("playCard");
         $player_id = $this->getActivePlayerId();
-        $this->cards->moveCard($card_id, 'cardsontable', $player_id);
+
+        if (count($card_ids) > 4) throw new \BgaUserException($this->_("You may play at most 4 cards"));
+
+        $this->cards->moveCards($card_ids, 'cardsontable', $player_id);
         // XXX check rules here
+        $card_id = $card_ids[0];
         $currentCard = $this->cards->getCard($card_id);
+        $numCards = count($card_ids);
         // And notify
-        $this->notifyAllPlayers('playCard', clienttranslate('${player_name} plays ${value_displayed} ${color_displayed}'), array (
-                'i18n' => array ('color_displayed','value_displayed' ),'card_id' => $card_id,'player_id' => $player_id,
+        $this->notifyAllPlayers('playCard', clienttranslate('${player_name} plays ${numCards} ${turnCard}'), array (
+                'i18n' => array ('turnCard','numCards' ),'card_id' => $card_id,'player_id' => $player_id,
                 'player_name' => $this->getActivePlayerName(),'value' => $currentCard ['type_arg'],
-                'value_displayed' => VALUES_LABEL [$currentCard ['type_arg']],'color' => $currentCard ['type'],
-                'color_displayed' => COLORS [$currentCard ['type']] ['name'] ));
+                'numCards' => $numCards,
+                'turnCard' => VALUES_LABEL[14] ));
         // Next player
         $this->gamestate->nextState('playCard');    }
 
@@ -159,6 +164,7 @@ class Game extends \Table
 
         return [
             "playableCardsIds" => [1, 2],
+            "currentCard" => VALUES_LABEL[14],
         ];
     }
 

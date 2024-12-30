@@ -100,7 +100,8 @@ function (dojo, declare) {
             this.playerHand.item_margin = 0;
 
             // dojo.connect(this.playerHand, 'onChangeSelection', this, 'onHandCardSelect');
-            dojo.connect( this.playerHand, 'onChangeSelection', this, 'onPlayerHandSelectionChanged' );
+            // dojo.connect( this.playerHand, 'onChangeSelection', this, 'onPlayerHandSelectionChanged' );
+            dojo.connect(dojo.byId("play_button"), 'click', this, 'playSelectedCards')
 
             // Create cards types:
             for (let color = 1; color <= 4; color++)
@@ -306,21 +307,23 @@ function (dojo, declare) {
         
         */
         
-        onPlayerHandSelectionChanged : function() {
+        playSelectedCards : function() {
             var items = this.playerHand.getSelectedItems();
+
+            if (items.length > 4) {this.showMessage(_('You may play at most 4 cards'), "error");}
 
             if (items.length > 0) {
                 var action = 'actPlayCard';
                 if (this.checkAction(action, true)) {
                     // Can play a card
-                    var card_id = items[0].id;                    
+                    var card_ids = items.map(card => card.id).join(',');  
+                    console.log(card_ids)    
+                    // var card_id = items[0].id              
                     this.bgaPerformAction(action, {
-                        card_id : card_id,
+                        card_ids : card_ids,
                     });
 
                     this.playerHand.unselectAll();
-                } else if (this.checkAction('actGiveCards')) {
-                    // Can give cards => let the player select some cards
                 } else {
                     this.playerHand.unselectAll();
                 }

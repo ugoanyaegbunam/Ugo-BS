@@ -66,8 +66,8 @@ $machinestates = [
 
     2 => [
         "name" => "playerTurn",
-        "description" => clienttranslate('${actplayer} must play a card or pass'),
-        "descriptionmyturn" => clienttranslate('${you} must play a card or pass'),
+        "description" => clienttranslate('${actplayer} must play at least one ${currentCard} card'),
+        "descriptionmyturn" => clienttranslate('${you} must play at least one ${currentCard} card'),
         "type" => "activeplayer",
         "args" => "argPlayerTurn",
         "possibleactions" => [
