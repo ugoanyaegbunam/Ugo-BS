@@ -248,7 +248,7 @@ html.show-unplayable-cards .unplayable {filter: brightness(0.7);}
     text-align: center;
     position: absolute;
     bottom: 0;
-    right: 150px;
+    right: 140px;
     width: 400px;
     margin: auto auto auto auto;
     border-radius: 10px;
@@ -270,7 +270,7 @@ html.show-unplayable-cards .unplayable {filter: brightness(0.7);}
     text-align: center;
     position: absolute;
     top: 0;
-    right: 150px;
+    right: 140px;
     width: 400px;
     margin: 10px auto 0 auto;
     border-radius: 10px;

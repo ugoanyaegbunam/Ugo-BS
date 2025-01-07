@@ -66,7 +66,7 @@ class Game extends \Table
         parent::__construct();
 
         $this->initGameStateLabels([
-            "trickColor" => 10,
+            "turnCard" => 154,
         ]);        
 
         self::$CARD_TYPES = [
@@ -131,7 +131,7 @@ class Game extends \Table
                 'i18n' => array ('turnCard','numCards' ),'card_id' => $card_id,'player_id' => $player_id,
                 'player_name' => $this->getActivePlayerName(),'value' => $currentCard ['type_arg'],
                 'numCards' => $numCards,
-                'turnCard' => VALUES_LABEL[14] ));
+                'turnCard' => VALUES_LABEL[$this->getGameStateValue("turnCard")/11] ));
         // Next player
         $this->gamestate->nextState('playCard');    }
 
@@ -164,7 +164,7 @@ class Game extends \Table
 
         return [
             "playableCardsIds" => [1, 2],
-            "currentCard" => VALUES_LABEL[14],
+            "turnCard" => VALUES_LABEL[$this->getGameStateValue("turnCard")/11],
         ];
     }
 
@@ -193,6 +193,8 @@ class Game extends \Table
     public function stNextPlayer(): void {
         // Retrieve the active player ID.
         $player_id = (int)$this->getActivePlayerId();
+
+        $this->setGameStateValue("turnCard", $this->updateTurnCard());
 
         // Give some extra time to the active player when he completed an action
         $this->giveExtraTime($player_id);
@@ -284,6 +286,8 @@ class Game extends \Table
     {
         // Set the colors of the players with HTML color code. The default below is red/green/blue/orange/brown. The
         // number of colors defined here must correspond to the maximum number of players allowed for the gams.
+
+        $this->setGameStateInitialValue( 'turnCard', 154 );
         $gameinfos = $this->getGameinfos();
         $default_colors = $gameinfos['player_colors'];
 
@@ -298,7 +302,6 @@ class Game extends \Table
             ]);
         }
 
-        $remove_code = [];
 
         // Create players based on generic information.
         //
@@ -394,5 +397,18 @@ class Game extends \Table
         }
 
         throw new \feException("Zombie mode not supported at this game state: \"{$state_name}\".");
+    }
+
+    protected function updateTurnCard(): int
+    {
+        $currCard = $this->getGameStateValue("turnCard") / 11;
+        
+        if ($currCard == 14) {
+            $currCard = 2;
+        } else {
+            $currCard = $currCard + 1;
+        }
+
+        return $currCard * 11;
     }
 }
