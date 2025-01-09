@@ -145,7 +145,7 @@
     border-radius: 10px;
 }
 
-#reveal_card_pile {
+#revealed_card_pile {
     display: flex;
     flex-direction: column;
     justify-content: space-around;

@@ -205,6 +205,9 @@ class Game extends \Table
         // Here, we would detect if the game is over, and in this case use "endGame" transition instead 
         $this->gamestate->nextState("nextPlayer");
     }
+    public function stCallBS(): void {
+        
+    }
 
     /**
      * Migrate database.
@@ -264,6 +267,10 @@ class Game extends \Table
   
         // Cards played on the table
         $result['cardsontable'] = $this->cards->getCardsInLocation('cardsontable');
+
+        // Num cards in opponent hands
+        $idToNumCards = $this->cards->countCardsByLocationArgs('hand');
+        $result['numCards'] = $idToNumCards;
 
         return $result;
     }
