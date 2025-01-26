@@ -79,7 +79,7 @@ function (dojo, declare) {
                             <div class="playertablecard" id="playertablecard_pile"></div>
                         </div>
 
-                        <div id="reveal_card_pile">
+                        <div id="revealed_card_pile">
                             <div class="playertablecard" id="revealed_playertablecard_pile"></div>
                         </div>
                     </div>
@@ -98,35 +98,6 @@ function (dojo, declare) {
             this.playerHand.horizontal_overlap = 28;
             this.playerHand.item_margin = 0;
 
-            // Left hand
-            this.leftHand = new ebg.stock();
-            this.leftHand.create(this, $('left_hand'), this.cardwidth, this.cardheight);
-            this.leftHand.centerItems = true;
-            this.leftHand.image_items_per_row = 15;
-            this.leftHand.apparenceBorderWidth = '2px'; // Change border width when selected
-            this.leftHand.setSelectionMode(0); // Select only a single card
-            this.leftHand.horizontal_overlap = 28;
-            this.leftHand.item_margin = 0;
-
-            // Top hand
-            this.topHand = new ebg.stock();
-            this.topHand.create(this, $('top_hand'), this.cardwidth, this.cardheight);
-            this.topHand.centerItems = true;
-            this.topHand.image_items_per_row = 15;
-            this.topHand.apparenceBorderWidth = '2px'; // Change border width when selected
-            this.topHand.setSelectionMode(2); // Select only a single card
-            this.topHand.horizontal_overlap = 28;
-            this.topHand.item_margin = 0;
-
-            // Right hand
-            this.rightHand = new ebg.stock();
-            this.rightHand.create(this, $('right_hand'), this.cardwidth, this.cardheight);
-            this.rightHand.centerItems = true;
-            this.rightHand.image_items_per_row = 15;
-            this.rightHand.apparenceBorderWidth = '2px'; // Change border width when selected
-            this.rightHand.setSelectionMode(2); // Select only a single card
-            this.rightHand.horizontal_overlap = 28;
-            this.rightHand.item_margin = 0;
 
             // dojo.connect(this.playerHand, 'onChangeSelection', this, 'onHandCardSelect');
             // dojo.connect( this.playerHand, 'onChangeSelection', this, 'onPlayerHandSelectionChanged' );
@@ -148,24 +119,6 @@ function (dojo, declare) {
                 const color = card.type;
                 const value = card.type_arg;
                 this.playerHand.addToStockWithId(this.getCardUniqueId(color, value), card.id);
-            }
-
-            // Cards in left hand
-            this.leftHand.addItemType(0, 0, g_gamethemeurl + 'img/cards1.jpg', 14);
-            for (let i = 0; i < gamedatas.numCards[orderedPlayers[1]["id"]]; i++) {
-                this.leftHand.addToStock(0);
-            }
-
-            // Cards in top hand
-            this.topHand.addItemType(0, 0, g_gamethemeurl + 'img/cards1.jpg', 14);
-            for (let i = 0; i < gamedatas.numCards[orderedPlayers[2]["id"]]; i++) {
-                this.topHand.addToStock(0);
-            }
-            
-            // Cards in right hand
-            this.rightHand.addItemType(0, 0, g_gamethemeurl + 'img/cards1.jpg', 14);
-            for (let i = 0; i < gamedatas.numCards[orderedPlayers[3]["id"]]; i++) {
-                this.rightHand.addToStock(0);
             }
             
             // Cards played on table
@@ -337,7 +290,7 @@ function (dojo, declare) {
 
             this.slideToObject('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'revealed_playertablecard_pile').play();
 
-            document.getElementById('cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value).remove();
+            // document.getElementById('cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value).remove();
         },
     
         // Get card unique identifier based on its color and value
@@ -383,6 +336,16 @@ function (dojo, declare) {
             }
         },
 
+        startBSCall : function() {
+            var caller = this.player_id;
+            var action = 'callBS';
+            if (this.checkAction(action, true)) {
+                console.log("caller of BS had player id:" + caller);
+                this.bgaPerformAction(action);
+            }
+
+        },
+
         callBS: function(player_id) {
             const pile = document.getElementById("playertablecard_pile");
 
@@ -397,7 +360,7 @@ function (dojo, declare) {
                 color = splitName[3];
                 value = splitName[4];
                 console.log(splitName)
-                this.addTableCard(player_id, color, value, card_id);
+                this.revealCardOnTable(player_id, color, value, card_id);
                 console.log(card_id, player_id); // Logs each element
             });
             

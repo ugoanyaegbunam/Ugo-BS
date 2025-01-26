@@ -86,6 +86,18 @@ $machinestates = [
         "updateGameProgression" => true,
         "transitions" => ["endGame" => 99, "nextPlayer" => 2]
     ],
+
+    6 => [
+        'name' => 'offerBSCall',
+        'description' => clienttranslate('If anyone would like to call BS, they may do so in the next 15 seconds. Speak now, or forever hold your peace.'),
+        'descriptionmyturn' => clienttranslate('If ${you} would like to call BS, they may do so in the next 15 seconds. Speak now, or forever hold your peace.'),
+        'type' => 'game',
+        'action'=>'stOfferBSCall',
+        'timelimit' => 15,
+        'possibleactions' => [ 'callBS', 'pass' ],
+        'transitions' => ["callBS" => 4, "pass" => 3]
+        ],
+
     4 => [
         "name" => "bsCall",
         "description" => '${caller} called BS!',

@@ -150,6 +150,11 @@ class Game extends \Table
         $this->gamestate->nextState("pass");
     }
 
+    // public function actCallBS(int $caller_id):
+    // {
+        
+    // }
+
     /**
      * Game state arguments, example content.
      *
@@ -205,6 +210,14 @@ class Game extends \Table
         // Here, we would detect if the game is over, and in this case use "endGame" transition instead 
         $this->gamestate->nextState("nextPlayer");
     }
+
+    public function stOfferBSCall() {
+        // Activate all players for the 'call BS' decision
+        $this->gamestate->setAllPlayersMultiactive();
+    
+    }
+        
+    
     public function stCallBS(): void {
         
     }
