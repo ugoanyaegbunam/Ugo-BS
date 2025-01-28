@@ -220,28 +220,78 @@ html.show-unplayable-cards .unplayable {filter: brightness(0.7);}
 }
 
 #bs_button {
-    width: 100px; /* Diameter of the button */
-    height: 100px;
-    background-color: red;
-    color: white;
-    font-size: 28px;
-    font-weight: bold;
-    text-align: center;
-    line-height: 100px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 4px solid #880000;
-    box-shadow: 0 10px 0 #880000, 0 12px 20px rgba(0, 0, 0, 0.4);
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    width: 100px; /* Width of the button */
+    height: 60px; /* Height of the button */
+    background-color: red; /* Button background color */
+    color: white; /* Text color */
+    font-size: 24px; /* Font size for the text */
+    font-weight: bold; /* Bold text */
+    text-align: center; /* Center the text horizontally */
+    line-height: 60px; /* Center the text vertically */
+    border-radius: 10px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    border: 2px solid darkred; /* Border color */
+    box-shadow: 0 5px 0 darkred, 0 8px 15px rgba(0, 0, 0, 0.3); /* Shadow effect */
+    transition: transform 0.1s ease, box-shadow 0.1s ease; /* Animation for click effect */
 
-    position: absolute; /* Enables placement within parent */
-    bottom: 20px; /* Adjust distance from top of parent */
-    right: 0; /* Adjust distance from right of parent */
+    position: absolute;
+    bottom: 70px;
+    right: 0;
 }
 
 #bs_button:active {
-    transform: translateY(5px);
-    box-shadow: 0 5px 0 #880000, 0 6px 10px rgba(0, 0, 0, 0.4);
+    transform: translateY(3px); /* Moves the button down slightly */
+    box-shadow: 0 2px 0 darkred, 0 4px 10px rgba(0, 0, 0, 0.3); /* Adjusts the shadow */
+}
+
+#play_button {
+    width: 100px; /* Width of the button */
+    height: 60px; /* Height of the button */
+    background-color: green; /* Button background color */
+    color: white; /* Text color */
+    font-size: 24px; /* Font size for the text */
+    font-weight: bold; /* Bold text */
+    text-align: center; /* Center the text horizontally */
+    line-height: 60px; /* Center the text vertically */
+    border-radius: 10px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    border: 2px solid darkgreen; /* Border color */
+    box-shadow: 0 5px 0 darkgreen, 0 8px 15px rgba(0, 0, 0, 0.3); /* Shadow effect */
+    transition: transform 0.1s ease, box-shadow 0.1s ease; /* Animation for click effect */
+
+    position: absolute;
+    bottom: 30px;
+    right: 0;
+}
+
+#play_button:active {
+    transform: translateY(3px); /* Moves the button down slightly */
+    box-shadow: 0 2px 0 darkgreen, 0 4px 10px rgba(0, 0, 0, 0.3); /* Adjusts the shadow */
+}
+
+#pass_button {
+    width: 100px; /* Width of the button */
+    height: 60px; /* Height of the button */
+    background-color: blue; /* Button background color */
+    color: white; /* Text color */
+    font-size: 24px; /* Font size for the text */
+    font-weight: bold; /* Bold text */
+    text-align: center; /* Center the text horizontally */
+    line-height: 60px; /* Center the text vertically */
+    border-radius: 10px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    border: 2px solid darkblue; /* Border color */
+    box-shadow: 0 5px 0 darkblue, 0 8px 15px rgba(0, 0, 0, 0.3); /* Shadow effect */
+    transition: transform 0.1s ease, box-shadow 0.1s ease; /* Animation for click effect */
+
+    position: absolute;
+    bottom: 0px;
+    right: 0;
+}
+
+#pass_button:active {
+    transform: translateY(3px); /* Moves the button down slightly */
+    box-shadow: 0 2px 0 darkblue, 0 4px 10px rgba(0, 0, 0, 0.3); /* Adjusts the shadow */
 }
 
 #my_hand_wrap{

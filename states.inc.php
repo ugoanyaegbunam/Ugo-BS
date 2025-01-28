@@ -75,7 +75,7 @@ $machinestates = [
             "actPlayCard", 
             "actPass",
         ],
-        "transitions" => ["playCard" => 3, "pass" => 3]
+        "transitions" => ["playCard" => 3, "pass" => 3, "offerBSCall" => 6]
     ],
 
     3 => [
@@ -89,13 +89,23 @@ $machinestates = [
 
     6 => [
         'name' => 'offerBSCall',
-        'description' => clienttranslate('If anyone would like to call BS, they may do so in the next 15 seconds. Speak now, or forever hold your peace.'),
-        'descriptionmyturn' => clienttranslate('If ${you} would like to call BS, they may do so in the next 15 seconds. Speak now, or forever hold your peace.'),
+        'description' => clienttranslate('Waiting for other players to make their decisions.'),
+        'descriptionmyturn' => clienttranslate('If ${you} would like to call BS, you may do so in the next 15 seconds. Speak now, or forever hold your peace.'),
+        'type' => 'multipleactiveplayer',
+        "action" => "stMakeEveryoneActive",
+        "args" => "argOfferBSCall",
+        'possibleactions' => [ 'actSubmitDecision', 'submitDecision' ],
+        'transitions' => [""=> 7]
+        ],
+
+    7 => [
+        'name' => 'handleDecisions',
+        'description' => clienttranslate('Processing decisions'),
+        'descriptionmyturn' => clienttranslate('Processing everyone\'s and your decision'),
         'type' => 'game',
-        'action'=>'stOfferBSCall',
-        'timelimit' => 15,
+        'action'=>'stHandleDecisions',
         'possibleactions' => [ 'callBS', 'pass' ],
-        'transitions' => ["callBS" => 4, "pass" => 3]
+        'transitions' => ["callBS" => 4, "nextPlayer" => 3]
         ],
 
     4 => [

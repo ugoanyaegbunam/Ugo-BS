@@ -63,6 +63,7 @@ function (dojo, declare) {
                 <div id="game_board_wrap"> 
                     <div id="game_board">
                         <div id="bs_button">BS</div>
+                        <div id="pass_button">Pass</div>
                         <div id="play_button">Play</div>
                         ${
                             orderedPlayers.map((player, index) => `
@@ -101,8 +102,9 @@ function (dojo, declare) {
 
             // dojo.connect(this.playerHand, 'onChangeSelection', this, 'onHandCardSelect');
             // dojo.connect( this.playerHand, 'onChangeSelection', this, 'onPlayerHandSelectionChanged' );
-            dojo.connect(dojo.byId("play_button"), 'click', this, 'playSelectedCards')
-            dojo.connect(dojo.byId("bs_button"), 'click', this, 'callBS')
+            dojo.connect(dojo.byId("play_button"), 'click', this, 'playSelectedCards');
+            dojo.connect(dojo.byId("bs_button"), 'click', this, 'callBS');
+            dojo.connect(dojo.byId("pass_button"), 'click', this, 'passBSCall');
 
             // Create cards types:
             for (let color = 1; color <= 4; color++)
@@ -336,34 +338,56 @@ function (dojo, declare) {
             }
         },
 
-        startBSCall : function() {
-            var caller = this.player_id;
-            var action = 'callBS';
-            if (this.checkAction(action, true)) {
-                console.log("caller of BS had player id:" + caller);
-                this.bgaPerformAction(action);
-            }
+        // startBSCall : function() {
+        //     var caller = this.player_id;
+        //     var action = 'callBS';
+        //     if (this.checkAction(action, true)) {
+        //         console.log("caller of BS had player id:" + caller);
+        //         this.bgaPerformAction(action);
+        //     }
 
+        // },
+
+
+        // callBS: function(player_id) {
+        //     const pile = document.getElementById("playertablecard_pile");
+
+        //     const x = 1; // Number of elements to get
+        //     const lastElements = Array.from(pile.children).slice(-x);
+            
+        //     // Do something with the last X elements
+        //     lastElements.forEach(element => {
+        //         splitName = element.id.split('_');
+        //         card_id = splitName[1];
+        //         player_id = splitName[2];
+        //         color = splitName[3];
+        //         value = splitName[4];
+        //         console.log(splitName)
+        //         this.revealCardOnTable(player_id, color, value, card_id);
+        //         console.log(card_id, player_id); // Logs each element
+        //     });
+            
+
+        // },
+
+        callBS: function() {
+            var decision = 1;
+            var action = "actSubmitDecision"
+            if (this.checkAction(action, true)) {
+                this.bgaPerformAction(action, {decision : decision});
+                this.showMessage(_('You have elected to call BS'))
+
+            }
+            
         },
 
-        callBS: function(player_id) {
-            const pile = document.getElementById("playertablecard_pile");
-
-            const x = 1; // Number of elements to get
-            const lastElements = Array.from(pile.children).slice(-x);
-            
-            // Do something with the last X elements
-            lastElements.forEach(element => {
-                splitName = element.id.split('_');
-                card_id = splitName[1];
-                player_id = splitName[2];
-                color = splitName[3];
-                value = splitName[4];
-                console.log(splitName)
-                this.revealCardOnTable(player_id, color, value, card_id);
-                console.log(card_id, player_id); // Logs each element
-            });
-            
+        passBSCall : function() {
+            var decision = 0;
+            var action = "actSubmitDecision"
+            if (this.checkAction(action, true)) {
+                this.bgaPerformAction(action, {decision : decision});
+                this.showMessage(_('You have elected to pass'))
+            }
 
         },
 

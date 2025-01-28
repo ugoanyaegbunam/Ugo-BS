@@ -45,10 +45,16 @@ const VALUES_LABEL = [
     14 => 'A'
 ];
 
+const DECISIONS = [
+    0 => 'passBSCall',
+    1 => 'callBS'
+];
+
 class Game extends \Table
 {
     private static array $CARD_TYPES;
     private $cards;
+    private $playerActions = [];
 
 
     /**
@@ -67,6 +73,7 @@ class Game extends \Table
 
         $this->initGameStateLabels([
             "turnCard" => 154,
+            "numCardsPlayedLast" =>50
         ]);        
 
         self::$CARD_TYPES = [
@@ -132,8 +139,11 @@ class Game extends \Table
                 'player_name' => $this->getActivePlayerName(),'value' => $currentCard ['type_arg'],
                 'numCards' => $numCards,
                 'turnCard' => VALUES_LABEL[$this->getGameStateValue("turnCard")/11] ));
+        $this->setGameStateValue("numCardsPlayedLast", $numCards);
+
         // Next player
-        $this->gamestate->nextState('playCard');    }
+        $this->gamestate->nextState('offerBSCall');
+        }
 
     public function actPass(): void
     {
@@ -148,6 +158,44 @@ class Game extends \Table
 
         // at the end of the action, move to the next state
         $this->gamestate->nextState("pass");
+    }
+
+    public function actSubmitDecision(int $decision) : void
+    {
+        $player_id = $this->getCurrentPlayerId();
+        
+        $this->playerActions[] = [
+            'player_id' => $player_id,
+            'action' => DECISIONS[$decision], 
+            'timestamp' => time(),
+        ];
+
+        $this->gamestate->setPlayerNonMultiactive($player_id, "");
+    }
+
+    public function stHandleDecisions() : void
+    {
+        
+        // Step 1: Filter the array to get only "callBS" actions
+        $callBSActions = array_filter($this->playerActions, function ($entry) {
+            return $entry['action'] === 'callBS';
+        });
+
+        // Step 2: Sort the filtered array by timestamp (ascending order, earliest first)
+        usort($callBSActions, function ($a, $b) {
+            return $a['timestamp'] <=> $b['timestamp']; // Compare timestamps
+        });
+
+        // Step 3: Access the earliest "callBS" action (first item in the sorted array)
+        if (!empty($callBSActions)) {
+            $earliestCallBS = $callBSActions[0]; // This will be the earliest "callBS" action
+            // echo "Earliest callBS action: Player {$earliestCallBS['player_id']} at timestamp {$earliestCallBS['timestamp']}";
+            $this->gamestate->nextState('bsCall');
+        } else {
+            // echo "No 'callBS' action found.";
+            $this->gamestate->nextState('nextPlayer');
+        }
+        
     }
 
     // public function actCallBS(int $caller_id):
@@ -170,6 +218,15 @@ class Game extends \Table
         return [
             "playableCardsIds" => [1, 2],
             "turnCard" => VALUES_LABEL[$this->getGameStateValue("turnCard")/11],
+        ];
+    }
+
+    public function argOfferBSCall(): array
+    {
+        // Get some values from the current game situation from the database.
+
+        return [
+            "numCardsPlayedLast" => $this->getGameStateValue("numCardsPlayedLast"),
         ];
     }
 
@@ -211,11 +268,11 @@ class Game extends \Table
         $this->gamestate->nextState("nextPlayer");
     }
 
-    public function stOfferBSCall() {
-        // Activate all players for the 'call BS' decision
-        $this->gamestate->setAllPlayersMultiactive();
+    // public function stOfferBSCall() {
+    //     // Activate all players for the 'call BS' decision
+    //     $this->gamestate->setAllPlayersMultiactive();
     
-    }
+    // }
         
     
     public function stCallBS(): void {
