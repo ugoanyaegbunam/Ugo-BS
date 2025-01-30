@@ -73,7 +73,10 @@ class Game extends \Table
 
         $this->initGameStateLabels([
             "turnCard" => 154,
-            "numCardsPlayedLast" =>50
+            "numCardsPlayedLast" => 50,
+            "lastBSCaller" => 99,
+            "lastPlayer" => 60,
+            "receiver" => 72
         ]);        
 
         self::$CARD_TYPES = [
@@ -128,7 +131,11 @@ class Game extends \Table
 
         if (count($card_ids) > 4) throw new \BgaUserException($this->_("You may play at most 4 cards"));
 
-        $this->cards->moveCards($card_ids, 'cardsontable', $player_id);
+        foreach ($card_ids as $card) {
+            $this->cards->insertCard($card, 'cardsontable', $player_id);
+        }
+
+        // $this->cards->moveCards($card_ids, 'cardsontable', $player_id);
         // XXX check rules here
         $card_id = $card_ids[0];
         $currentCard = $this->cards->getCard($card_id);
@@ -140,6 +147,7 @@ class Game extends \Table
                 'numCards' => $numCards,
                 'turnCard' => VALUES_LABEL[$this->getGameStateValue("turnCard")/11] ));
         $this->setGameStateValue("numCardsPlayedLast", $numCards);
+        $this->setGameStateValue("lastPlayer", $player_id);
 
         // Next player
         $this->gamestate->nextState('offerBSCall');
@@ -190,7 +198,8 @@ class Game extends \Table
         if (!empty($callBSActions)) {
             $earliestCallBS = $callBSActions[0]; // This will be the earliest "callBS" action
             // echo "Earliest callBS action: Player {$earliestCallBS['player_id']} at timestamp {$earliestCallBS['timestamp']}";
-            $this->gamestate->nextState('bsCall');
+            $this->setGameStateValue("lastBSCaller", $earliestCallBS['player_id']);
+            $this->gamestate->nextState('callBS');
         } else {
             // echo "No 'callBS' action found.";
             $this->gamestate->nextState('nextPlayer');
@@ -221,12 +230,13 @@ class Game extends \Table
         ];
     }
 
-    public function argOfferBSCall(): array
+    public function argBSCall(): array
     {
         // Get some values from the current game situation from the database.
 
         return [
             "numCardsPlayedLast" => $this->getGameStateValue("numCardsPlayedLast"),
+            "lastBSCaller" => $this->getGameStateValue("lastBSCaller")
         ];
     }
 
@@ -276,7 +286,37 @@ class Game extends \Table
         
     
     public function stCallBS(): void {
+        $this->notifyAllPlayers('BSCalled', clienttranslate('${caller} called BS on ${player_name}'), array (
+            'i18n' => array ('caller','player_name' ),'caller' => $this->getPlayerNameById($this->getGameStateValue("lastBSCaller")),
+            'player_name' => $this->getPlayerNameById($this->getGameStateValue("lastPlayer")),
+            'cards' => $this->cards->getCardsOnTop($this->getGameStateValue("numCardsPlayedLast"), "cardsontable"),
+            'player_id' => $this->getGameStateValue("lastPlayer")));
+
+        $wasBS = false;
+        $cards_called = $this->cards->getCardsOnTop($this->getGameStateValue("numCardsPlayedLast"), "cardsontable");
+        $caller = ($this->getGameStateValue("lastBSCaller"));
+        $needed_card = $this->getGameStateValue("turnCard")/11;
+
+        foreach ($cards_called as $card) {
+            if ($card['type_arg'] != $needed_card) {
+                $wasBS = true;
+                $this->setGameStateValue("receiver", $this->getGameStateValue("lastPlayer"));
+            }else{
+                $this->setGameStateValue("receiver", $caller);
+            }
+        }
+
+        $this->gamestate->nextState("givePile");
         
+
+        
+    }
+
+    public function stGivePile(): void{
+        $cards_to_give = $this->cards->getCardsOnTop($this->getGameStateValue("numCardsPlayedLast"), "cardsontable");
+        $this->cards->moveCards($cards_to_give, 'deck', $this->getReceiverOfPile());
+        
+
     }
 
     /**
@@ -365,6 +405,12 @@ class Game extends \Table
         // number of colors defined here must correspond to the maximum number of players allowed for the gams.
 
         $this->setGameStateInitialValue( 'turnCard', 154 );
+        $this->setGameStateInitialValue("numCardsPlayedLast", 50);
+        $this->setGameStateInitialValue("lastBSCaller", 99);
+        $this->setGameStateInitialValue("lastPlayer", 60);
+        $this->setGameStateInitialValue("receiver", 72);
+
+
         $gameinfos = $this->getGameinfos();
         $default_colors = $gameinfos['player_colors'];
 
@@ -487,5 +533,10 @@ class Game extends \Table
         }
 
         return $currCard * 11;
+    }
+
+    protected function getReceiverOfPile(): int
+    {
+        return $this->getGameStateValue("receiver");
     }
 }

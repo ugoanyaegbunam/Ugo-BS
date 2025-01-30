@@ -93,7 +93,6 @@ $machinestates = [
         'descriptionmyturn' => clienttranslate('If ${you} would like to call BS, you may do so in the next 15 seconds. Speak now, or forever hold your peace.'),
         'type' => 'multipleactiveplayer',
         "action" => "stMakeEveryoneActive",
-        "args" => "argOfferBSCall",
         'possibleactions' => [ 'actSubmitDecision', 'submitDecision' ],
         'transitions' => [""=> 7]
         ],
@@ -109,11 +108,11 @@ $machinestates = [
         ],
 
     4 => [
-        "name" => "bsCall",
+        "name" => "BSCall",
         "description" => '${caller} called BS!',
         "type" => "game",
         "action" => "stCallBS",
-        "args" => "argCallBS",
+        "args" => "argBSCall",
         "transitions" => ["givePile" => 5]
     ],
 
@@ -122,8 +121,7 @@ $machinestates = [
         "description" => '${caller} was ${outcome}',
         "type" => "game",
         "action" => "stGivePile",
-        "args" => "argGivePile",
-        "transitions" => ["playerTurn" => 2]
+        "transitions" => ["nextPlayer" => 3]
     ],
 
     // Final state.

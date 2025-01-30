@@ -18,6 +18,7 @@
  // Constants
  const PLACEMENTS = ['my', 'left', 'top', 'right']
  const DIRECTIONS = ['S', 'W', 'N', 'E']
+ const PLAYERID_TO_DIRECTION = {}
 
 define([
     "dojo","dojo/_base/declare",
@@ -57,6 +58,9 @@ function (dojo, declare) {
             console.log( "Starting game setup" );
 
             const orderedPlayers = this.getOrderedPlayers(gamedatas);
+            for (let i in orderedPlayers) {
+                PLAYERID_TO_DIRECTION[player.id] = i;
+            }
 
 
             document.getElementById('game_play_area').insertAdjacentHTML('beforeend', `
@@ -280,6 +284,34 @@ function (dojo, declare) {
             }
         },
 
+        givePile(player) {
+            const pile = document.getElementById("revealed_playertablecard_pile");
+
+            const revealed_cards = Array.from(pile.children);
+            
+            // Do something with the last X elements
+            revealed_cards.forEach(element => {
+                splitName = element.id.split('_');
+                card_id = splitName[1];
+                player_id = splitName[2];
+                color = splitName[3];
+                value = splitName[4];
+                console.log(splitName)
+
+                this.addTableCard(value, color, card_player_id, card_id, "back");
+
+                if ($('cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value)) {
+                    this.placeOnObject('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value);
+                } 
+    
+    
+                this.slideToObject('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'revealed_playertablecard_pile').play();
+    
+    
+                console.log(card_id, player_id); // Logs each element
+            });
+    },
+
         revealCardOnTable : function(player_id, color, value, card_id) {
             this.addTableCard(value, color, player_id, card_id, "front");
 
@@ -427,11 +459,14 @@ function (dojo, declare) {
             const notifs = [
                 ['newHand', 1],
                 ['playCard', 100],
+                ['BSCalled', 101],
+                ['BSHandled', 102]
+
             ];
     
             notifs.forEach((notif) => {
                 dojo.subscribe(notif[0], this, `notif_${notif[0]}`);
-                this.notifqueue.setSynchronous(notif[0], notif[1]);
+                this.notifqueue.setSynchronous(notif[0], notif[1], notif[2], notif[3]);
             });
 
         },
@@ -451,7 +486,21 @@ function (dojo, declare) {
         notif_playCard : function(notif) {
             // Play a card on the table
             this.playCardOnTable(notif.args.player_id, notif.args.color, notif.args.value, notif.args.card_id);
-        },        
+        },
+        
+        notif_BSCalled : function(notif) {
+            for ( var i in notif.args.cards) {
+                var card = notif.args.cards[i];
+                var color = card.type;
+                var value = card.type_arg;
+                this.revealCardOnTable(player_id, color, value, card_id)
+            }
+
+        },
+
+        notif_BSHandled : function(notif) {
+
+        }
         // TODO: from this point and below, you can write your game notifications handling methods
         
         /*
