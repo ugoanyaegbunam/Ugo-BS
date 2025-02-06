@@ -59,7 +59,7 @@ function (dojo, declare) {
 
             const orderedPlayers = this.getOrderedPlayers(gamedatas);
             for (let i in orderedPlayers) {
-                PLAYERID_TO_DIRECTION[player.id] = i;
+                PLAYERID_TO_DIRECTION[orderedPlayers[i].id] = i;
             }
 
 
@@ -255,7 +255,7 @@ function (dojo, declare) {
             if (player_id != this.player_id) {
                 // Some opponent played a card
                 // Move card from player panel
-                this.placeOnObject('cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'overall_player_board_' + player_id);
+                this.placeOnObject('cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand_wrap');
             } else {
                 // You played a card. If it exists in your hand, move card from there and remove
                 // corresponding item
@@ -284,13 +284,19 @@ function (dojo, declare) {
             }
         },
 
+        addPlaceholderCard(player_id, ith_card_number) {
+            document.getElementById('revealed_playertablecard_pile').insertAdjacentHTML('beforeend', `
+                <div class="card cardontable" id="placeholder_card_${player_id}_${ith_card_number}" style="background-position:-${x}00% -${y}00%"></div>
+            `);
+        },
+
         givePile(player) {
             const pile = document.getElementById("revealed_playertablecard_pile");
 
             const revealed_cards = Array.from(pile.children);
             
             // Do something with the last X elements
-            revealed_cards.forEach(element => {
+            revealed_cards.forEach((element, i) => {
                 splitName = element.id.split('_');
                 card_id = splitName[1];
                 player_id = splitName[2];
@@ -298,14 +304,14 @@ function (dojo, declare) {
                 value = splitName[4];
                 console.log(splitName)
 
-                this.addTableCard(value, color, card_player_id, card_id, "back");
+                this.addPlaceholderCard(player);
 
-                if ($('cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value)) {
-                    this.placeOnObject('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value);
+                if ($('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value)) {
+                    this.placeOnObject('placeholder_card_' + player, 'revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value);
                 } 
     
     
-                this.slideToObject('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'revealed_playertablecard_pile').play();
+                this.slideToObject('placeholder_card_' + player, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand_wrap').play();
     
     
                 console.log(card_id, player_id); // Logs each element
@@ -493,13 +499,14 @@ function (dojo, declare) {
                 var card = notif.args.cards[i];
                 var color = card.type;
                 var value = card.type_arg;
-                this.revealCardOnTable(player_id, color, value, card_id)
+                var card_id = card.id;
+                this.revealCardOnTable(notif.args.player_id, color, value, card_id)
             }
 
         },
 
         notif_BSHandled : function(notif) {
-
+            this.givePile(notif.args.player);
         }
         // TODO: from this point and below, you can write your game notifications handling methods
         

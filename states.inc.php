@@ -121,6 +121,7 @@ $machinestates = [
         "description" => '${caller} was ${outcome}',
         "type" => "game",
         "action" => "stGivePile",
+        "args" => "argGivePile",
         "transitions" => ["nextPlayer" => 3]
     ],
 

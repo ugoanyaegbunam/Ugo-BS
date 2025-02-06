@@ -50,6 +50,11 @@ const DECISIONS = [
     1 => 'callBS'
 ];
 
+const OUTCOMES =[
+    40 => 'wrong',
+    41 => 'right'
+];
+
 class Game extends \Table
 {
     private static array $CARD_TYPES;
@@ -76,7 +81,8 @@ class Game extends \Table
             "numCardsPlayedLast" => 50,
             "lastBSCaller" => 99,
             "lastPlayer" => 60,
-            "receiver" => 72
+            "receiver" => 72,
+            "outcome" => 40
         ]);        
 
         self::$CARD_TYPES = [
@@ -236,9 +242,21 @@ class Game extends \Table
 
         return [
             "numCardsPlayedLast" => $this->getGameStateValue("numCardsPlayedLast"),
-            "lastBSCaller" => $this->getGameStateValue("lastBSCaller")
+            "caller" => $this->getGameStateValue("lastBSCaller")
         ];
     }
+
+    public function argGivePile(): array
+    {
+        // Get some values from the current game situation from the database.
+
+        
+        return [
+            "caller" => $this->getGameStateValue("lastBSCaller"),
+            "outcome" => OUTCOMES[$this->getGameStateValue("outcome")],
+        ];
+    }
+
 
     /**
      * Compute and return the current game progression.
@@ -286,14 +304,16 @@ class Game extends \Table
         
     
     public function stCallBS(): void {
+        print_r( $this->cards->getCardsOnTop($this->getGameStateValue("numCardsPlayedLast"), "cardsontable"));
         $this->notifyAllPlayers('BSCalled', clienttranslate('${caller} called BS on ${player_name}'), array (
-            'i18n' => array ('caller','player_name' ),'caller' => $this->getPlayerNameById($this->getGameStateValue("lastBSCaller")),
+            'i18n' => array ('caller','player_name', 'cards' ),'caller' => $this->getPlayerNameById($this->getGameStateValue("lastBSCaller")),
             'player_name' => $this->getPlayerNameById($this->getGameStateValue("lastPlayer")),
             'cards' => $this->cards->getCardsOnTop($this->getGameStateValue("numCardsPlayedLast"), "cardsontable"),
             'player_id' => $this->getGameStateValue("lastPlayer")));
 
         $wasBS = false;
         $cards_called = $this->cards->getCardsOnTop($this->getGameStateValue("numCardsPlayedLast"), "cardsontable");
+        // print_r($cards_called);
         $caller = ($this->getGameStateValue("lastBSCaller"));
         $needed_card = $this->getGameStateValue("turnCard")/11;
 
@@ -301,8 +321,10 @@ class Game extends \Table
             if ($card['type_arg'] != $needed_card) {
                 $wasBS = true;
                 $this->setGameStateValue("receiver", $this->getGameStateValue("lastPlayer"));
+                $this->setGameStateValue("outcome", 41);
             }else{
                 $this->setGameStateValue("receiver", $caller);
+                $this->setGameStateValue("outcome", 40);
             }
         }
 
@@ -314,10 +336,28 @@ class Game extends \Table
 
     public function stGivePile(): void{
         $cards_to_give = $this->cards->getCardsOnTop($this->getGameStateValue("numCardsPlayedLast"), "cardsontable");
-        $this->cards->moveCards($cards_to_give, 'deck', $this->getReceiverOfPile());
-        
+        $card_ids = array_column($cards_to_give, 'id');
+        $this->cards->moveCards($card_ids, 'deck', $this->getReceiverOfPile());
+        $caller = ($this->getGameStateValue("lastBSCaller"));
+        $receiver = $this->getReceiverOfPile();
+        // print_r("caller: $caller");
+        // print_r("receiver: $receiver");
 
-    }
+        
+        if ( $receiver == $caller) {
+            $this->notifyAllPlayers('BSHandled', clienttranslate('It wasn\'t BS!'), array (
+                'i18n' => array ('player' ),
+                'player' => $caller));
+    
+            } else {
+            $this->notifyAllPlayers('BSHandled', clienttranslate('It was BS!'), array (
+                'i18n' => array ('player' ),
+                'player' => $receiver));
+            }
+    
+
+            $this->gamestate->nextState("nextPlayer");
+        }
 
     /**
      * Migrate database.
@@ -409,6 +449,7 @@ class Game extends \Table
         $this->setGameStateInitialValue("lastBSCaller", 99);
         $this->setGameStateInitialValue("lastPlayer", 60);
         $this->setGameStateInitialValue("receiver", 72);
+        $this->setGameStateInitialValue("outcome", 40);
 
 
         $gameinfos = $this->getGameinfos();
