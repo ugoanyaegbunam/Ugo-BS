@@ -143,13 +143,12 @@ class Game extends \Table
 
         // $this->cards->moveCards($card_ids, 'cardsontable', $player_id);
         // XXX check rules here
-        $card_id = $card_ids[0];
-        $currentCard = $this->cards->getCard($card_id);
         $numCards = count($card_ids);
         // And notify
         $this->notifyAllPlayers('playCard', clienttranslate('${player_name} plays ${numCards} ${turnCard}'), array (
-                'i18n' => array ('turnCard','numCards' ),'card_id' => $card_id,'player_id' => $player_id,
-                'player_name' => $this->getActivePlayerName(),'value' => $currentCard ['type_arg'],
+                'i18n' => array ('turnCard','numCards', 'cards' ),'player_id' => $player_id,
+                'player_name' => $this->getActivePlayerName(),
+                'cards' => $this->cards->getCardsOnTop($numCards, "cardsontable"),
                 'numCards' => $numCards,
                 'turnCard' => VALUES_LABEL[$this->getGameStateValue("turnCard")/11] ));
         $this->setGameStateValue("numCardsPlayedLast", $numCards);
@@ -189,7 +188,7 @@ class Game extends \Table
 
     public function stHandleDecisions() : void
     {
-        
+        print_r($this->playerActions);
         // Step 1: Filter the array to get only "callBS" actions
         $callBSActions = array_filter($this->playerActions, function ($entry) {
             return $entry['action'] === 'callBS';
@@ -290,6 +289,7 @@ class Game extends \Table
         $this->giveExtraTime($player_id);
         
         $this->activeNextPlayer();
+        $this->playerActions = [];
 
         // Go to another gamestate
         // Here, we would detect if the game is over, and in this case use "endGame" transition instead 
@@ -304,7 +304,7 @@ class Game extends \Table
         
     
     public function stCallBS(): void {
-        print_r( $this->cards->getCardsOnTop($this->getGameStateValue("numCardsPlayedLast"), "cardsontable"));
+        // print_r( $this->cards->getCardsOnTop($this->getGameStateValue("numCardsPlayedLast"), "cardsontable"));
         $this->notifyAllPlayers('BSCalled', clienttranslate('${caller} called BS on ${player_name}'), array (
             'i18n' => array ('caller','player_name', 'cards' ),'caller' => $this->getPlayerNameById($this->getGameStateValue("lastBSCaller")),
             'player_name' => $this->getPlayerNameById($this->getGameStateValue("lastPlayer")),
@@ -335,9 +335,10 @@ class Game extends \Table
     }
 
     public function stGivePile(): void{
-        $cards_to_give = $this->cards->getCardsOnTop($this->getGameStateValue("numCardsPlayedLast"), "cardsontable");
+        $cards_to_give = $this->cards->getCardsInLocation('cardsontable');
+
         $card_ids = array_column($cards_to_give, 'id');
-        $this->cards->moveCards($card_ids, 'deck', $this->getReceiverOfPile());
+        $this->cards->moveCards($card_ids, 'hand', $this->getReceiverOfPile());
         $caller = ($this->getGameStateValue("lastBSCaller"));
         $receiver = $this->getReceiverOfPile();
         // print_r("caller: $caller");
@@ -346,13 +347,13 @@ class Game extends \Table
         
         if ( $receiver == $caller) {
             $this->notifyAllPlayers('BSHandled', clienttranslate('It wasn\'t BS!'), array (
-                'i18n' => array ('player' ),
-                'player' => $caller));
+                'i18n' => array ('player', 'cards_to_give' ),
+                'player_id' => $caller, 'cards' => $cards_to_give));
     
             } else {
             $this->notifyAllPlayers('BSHandled', clienttranslate('It was BS!'), array (
-                'i18n' => array ('player' ),
-                'player' => $receiver));
+                'i18n' => array ('player', 'cards_to_give' ),
+                'player_id' => $receiver, 'cards' => $cards_to_give));
             }
     
 

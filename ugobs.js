@@ -92,7 +92,9 @@ function (dojo, declare) {
             `);
 
             // document.getElementById('bs_button').addEventListener('click', callBS);
+            
 
+            this.playerHands = [];
             // Player hand
             this.playerHand = new ebg.stock();
             this.playerHand.create(this, $('my_hand'), this.cardwidth, this.cardheight);
@@ -102,6 +104,40 @@ function (dojo, declare) {
             this.playerHand.setSelectionMode(2); // Select only a single card
             this.playerHand.horizontal_overlap = 28;
             this.playerHand.item_margin = 0;
+            this.playerHands.push(this.playerHand);
+
+            // Left hand
+            this.leftHand = new ebg.stock();
+            this.leftHand.create(this, $('left_hand'), this.cardwidth, this.cardheight);
+            this.leftHand.centerItems = true;
+            this.leftHand.image_items_per_row = 15;
+            this.leftHand.apparenceBorderWidth = '2px'; // Change border width when selected
+            this.leftHand.setSelectionMode(0); // Select only a single card
+            this.leftHand.horizontal_overlap = 28;
+            this.leftHand.item_margin = 0;
+            this.playerHands.push(this.leftHand);
+
+            // Top hand
+            this.topHand = new ebg.stock();
+            this.topHand.create(this, $('top_hand'), this.cardwidth, this.cardheight);
+            this.topHand.centerItems = true;
+            this.topHand.image_items_per_row = 15;
+            this.topHand.apparenceBorderWidth = '2px'; // Change border width when selected
+            this.topHand.setSelectionMode(0); // Select only a single card
+            this.topHand.horizontal_overlap = 28;
+            this.topHand.item_margin = 0;
+            this.playerHands.push(this.topHand);
+
+            // Right hand
+            this.rightHand = new ebg.stock();
+            this.rightHand.create(this, $('right_hand'), this.cardwidth, this.cardheight);
+            this.rightHand.centerItems = true;
+            this.rightHand.image_items_per_row = 15;
+            this.rightHand.apparenceBorderWidth = '2px'; // Change border width when selected
+            this.rightHand.setSelectionMode(0); // Select only a single card
+            this.rightHand.horizontal_overlap = 28;
+            this.rightHand.item_margin = 0;
+            this.playerHands.push(this.rightHand);
 
 
             // dojo.connect(this.playerHand, 'onChangeSelection', this, 'onHandCardSelect');
@@ -117,8 +153,17 @@ function (dojo, declare) {
                     const card_type_id = this.getCardUniqueId(color, value);
                     // Change card image style according to the preference option
                     this.playerHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards1.jpg', card_type_id);
+                    this.leftHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards1.jpg', card_type_id);
+                    this.topHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards1.jpg', card_type_id);
+                    this.rightHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards1.jpg', card_type_id);
+
                 }
-            
+            const card_back_type_id = 60; // Unique ID for the card back
+            this.playerHand.addItemType(card_back_type_id, card_back_type_id, g_gamethemeurl + 'img/cards1.jpg', 14);
+            this.leftHand.addItemType(card_back_type_id, card_back_type_id, g_gamethemeurl + 'img/cards1.jpg', 14);
+            this.topHand.addItemType(card_back_type_id, card_back_type_id, g_gamethemeurl + 'img/cards1.jpg', 14);
+            this.rightHand.addItemType(card_back_type_id, card_back_type_id, g_gamethemeurl + 'img/cards1.jpg', 14);
+
             // Cards in player's hand
             for (let i in gamedatas.hand) {
                 const card = gamedatas.hand[i];
@@ -126,7 +171,21 @@ function (dojo, declare) {
                 const value = card.type_arg;
                 this.playerHand.addToStockWithId(this.getCardUniqueId(color, value), card.id);
             }
-            
+            // Cards in left hand
+            left_player = this.getOrderedPlayers(gamedatas)[1].id;
+            for (let i = 0; i < gamedatas.numCards[left_player]; i++) {
+                this.leftHand.addToStock(card_back_type_id, 'overall_player_board_' + left_player);
+            }
+            // Cards in top hand
+            top_player = this.getOrderedPlayers(gamedatas)[2].id;
+            for (let i = 0; i < gamedatas.numCards[top_player]; i++) {
+                this.topHand.addToStock(card_back_type_id, 'overall_player_board_' + top_player);
+            }
+            // Cards in right hand
+            right_player = this.getOrderedPlayers(gamedatas)[3].id;
+            for (let i = 0; i < gamedatas.numCards[right_player]; i++) {
+                this.rightHand.addToStock(card_back_type_id, 'overall_player_board_' + right_player);
+            }
             // Cards played on table
             for (let i in gamedatas.cardsontable) {
                 const card = gamedatas.cardsontable[i];
@@ -137,6 +196,7 @@ function (dojo, declare) {
             }
 
             console.log(gamedatas.numCards);
+            console.log(PLAYERID_TO_DIRECTION);
             console.log(orderedPlayers[1]["id"]);
 
             
@@ -255,19 +315,20 @@ function (dojo, declare) {
             if (player_id != this.player_id) {
                 // Some opponent played a card
                 // Move card from player panel
-                this.placeOnObject('cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand_wrap');
+                this.placeOnObject('cardontable_' + card_id + '_' + player_id + '_' + value, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand_item_0');
+                this.playerHands[PLAYERID_TO_DIRECTION[player_id]].removeFromStockById(card_back_type_id);
             } else {
                 // You played a card. If it exists in your hand, move card from there and remove
                 // corresponding item
 
                 if ($('my_hand_item_' + card_id)) {
-                    this.placeOnObject('cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'my_hand_item_' + card_id);
+                    this.placeOnObject('cardontable_' + card_id + '_' + player_id + '_' + value, 'my_hand_item_' + card_id);
                     this.playerHand.removeFromStockById(card_id);
                 }
             }
 
             // In any case: move it to its final destination
-            this.slideToObject('cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'playertablecard_pile').play();
+            this.slideToObject('cardontable_' + card_id + '_' + player_id + '_' + value, 'playertablecard_pile').play();
         },
 
         addTableCard(value, color, card_player_id, card_id, side) {
@@ -275,7 +336,7 @@ function (dojo, declare) {
             const y = color - 1;
             if (side == 'back') {
                 document.getElementById('playertablecard_pile').insertAdjacentHTML('beforeend', `
-                    <div class="card cardontable" id="cardontable_${card_id}_${card_player_id}_${color}_${value}" style="background-position:-1400% -00%"></div>
+                    <div class="card cardontable" id="cardontable_${card_id}_${card_player_id}_${value}" style="background-position:-1400% -00%"></div>
                 `);
             } else {
             document.getElementById('playertablecard_pile').insertAdjacentHTML('beforeend', `
@@ -284,53 +345,54 @@ function (dojo, declare) {
             }
         },
 
-        addPlaceholderCard(player_id, ith_card_number) {
-            document.getElementById('revealed_playertablecard_pile').insertAdjacentHTML('beforeend', `
-                <div class="card cardontable" id="placeholder_card_${player_id}_${ith_card_number}" style="background-position:-${x}00% -${y}00%"></div>
-            `);
+        addPlaceholderCard(player_id, color, value, card_id) {
+            if ($('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value)) {
+
+                document.getElementById('revealed_playertablecard_pile').insertAdjacentHTML('beforeend', `
+                    <div class="card cardontable" id="placeholder_card_${player_id}" style="background-position:-1400% -$00%"></div>
+                `);
+            }
+            else if ($('cardontable_' + card_id + '_' + player_id + '_' + value)) {
+                document.getElementById('playertablecard_pile').insertAdjacentHTML('beforeend', `
+                    <div class="card cardontable" id="placeholder_card_${player_id}" style="background-position:-1400% -$00%"></div>
+                `);
+            }
         },
 
-        givePile(player) {
-            const pile = document.getElementById("revealed_playertablecard_pile");
+        giveCard(player, color, value, card_id) {
+            this.addPlaceholderCard(player, color, value, card_id);
 
-            const revealed_cards = Array.from(pile.children);
-            
-            // Do something with the last X elements
-            revealed_cards.forEach((element, i) => {
-                splitName = element.id.split('_');
-                card_id = splitName[1];
-                player_id = splitName[2];
-                color = splitName[3];
-                value = splitName[4];
-                console.log(splitName)
+            if ($('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value)) {
+                this.placeOnObject('placeholder_card_' + player, 'revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value);
+                dojo.destroy('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value);
+            } 
+            else if ($('cardontable_' + card_id + '_' + player_id + '_' + value)) {
+                this.placeOnObject('placeholder_card_' + player, 'cardontable_' + card_id + '_' + player_id + '_' + value);
+                dojo.destroy('cardontable_' + card_id + '_' + player_id + '_' + value)
+            } 
 
-                this.addPlaceholderCard(player);
 
-                if ($('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value)) {
-                    this.placeOnObject('placeholder_card_' + player, 'revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value);
-                } 
-    
-    
-                this.slideToObject('placeholder_card_' + player, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand_wrap').play();
-    
-    
-                console.log(card_id, player_id); // Logs each element
-            });
-    },
+
+            this.slideToObject('placeholder_card_' + player, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand_wrap').play();
+            this.moveDiv('placeholder_card_' + player, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand_wrap');
+
+
+            console.log(card_id, player_id); // Logs each element
+        },
 
         revealCardOnTable : function(player_id, color, value, card_id) {
             this.addTableCard(value, color, player_id, card_id, "front");
 
             // Move card from pile to side and reveal
 
-            if ($('cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value)) {
-                this.placeOnObject('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value);
+            if ($('cardontable_' + card_id + '_' + player_id + '_' + value)) {
+                this.placeOnObject('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'cardontable_' + card_id + '_' + player_id + '_' + value);
+                dojo.destroy('cardontable_' + card_id + '_' + player_id + '_' + value);
             } 
 
-
             this.slideToObject('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'revealed_playertablecard_pile').play();
+            // this.moveDiv('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'revealed_playertablecard_pile');
 
-            // document.getElementById('cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value).remove();
         },
     
         // Get card unique identifier based on its color and value
@@ -338,6 +400,11 @@ function (dojo, declare) {
             return (color - 1) * 13 + (value - 2);
         },
 
+        moveDiv(div, target) {
+            element = document.getElementById(div);
+            newParent = document.getElementById(target);
+            newParent.appendChild(element);
+        },
 
         ///////////////////////////////////////////////////
         //// Player's action
@@ -375,38 +442,6 @@ function (dojo, declare) {
                 }
             }
         },
-
-        // startBSCall : function() {
-        //     var caller = this.player_id;
-        //     var action = 'callBS';
-        //     if (this.checkAction(action, true)) {
-        //         console.log("caller of BS had player id:" + caller);
-        //         this.bgaPerformAction(action);
-        //     }
-
-        // },
-
-
-        // callBS: function(player_id) {
-        //     const pile = document.getElementById("playertablecard_pile");
-
-        //     const x = 1; // Number of elements to get
-        //     const lastElements = Array.from(pile.children).slice(-x);
-            
-        //     // Do something with the last X elements
-        //     lastElements.forEach(element => {
-        //         splitName = element.id.split('_');
-        //         card_id = splitName[1];
-        //         player_id = splitName[2];
-        //         color = splitName[3];
-        //         value = splitName[4];
-        //         console.log(splitName)
-        //         this.revealCardOnTable(player_id, color, value, card_id);
-        //         console.log(card_id, player_id); // Logs each element
-        //     });
-            
-
-        // },
 
         callBS: function() {
             var decision = 1;
@@ -491,7 +526,13 @@ function (dojo, declare) {
 
         notif_playCard : function(notif) {
             // Play a card on the table
-            this.playCardOnTable(notif.args.player_id, notif.args.color, notif.args.value, notif.args.card_id);
+            for (var i in notif.args.cards) {
+                var card = notif.args.cards[i];
+                var color = card.type;
+                var value = card.type_arg;
+                var card_id = card.id;
+                this.playCardOnTable(notif.args.player_id, color, value, card_id);
+            }
         },
         
         notif_BSCalled : function(notif) {
@@ -506,7 +547,13 @@ function (dojo, declare) {
         },
 
         notif_BSHandled : function(notif) {
-            this.givePile(notif.args.player);
+            for ( var i in notif.args.cards) {
+                var card = notif.args.cards[i];
+                var color = card.type;
+                var value = card.type_arg;
+                var card_id = card.id;
+                this.giveCard(notif.args.player_id, color, value, card_id)
+            }
         }
         // TODO: from this point and below, you can write your game notifications handling methods
         
