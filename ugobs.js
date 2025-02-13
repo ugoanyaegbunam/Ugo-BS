@@ -19,6 +19,8 @@
  const PLACEMENTS = ['my', 'left', 'top', 'right']
  const DIRECTIONS = ['S', 'W', 'N', 'E']
  const PLAYERID_TO_DIRECTION = {}
+ const card_back_type_id = 60; // Unique ID for the card back
+
 
 define([
     "dojo","dojo/_base/declare",
@@ -308,15 +310,20 @@ function (dojo, declare) {
             return orderedPlayers;
         },
 
-        playCardOnTable : function(player_id, color, value, card_id) {
+        playCardOnTable : function(player_id, color, value, card_id, i) {
             // player_id => direction
             this.addTableCard(value, color, player_id, card_id, "back");
 
             if (player_id != this.player_id) {
                 // Some opponent played a card
                 // Move card from player panel
-                this.placeOnObject('cardontable_' + card_id + '_' + player_id + '_' + value, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand_item_0');
-                this.playerHands[PLAYERID_TO_DIRECTION[player_id]].removeFromStockById(card_back_type_id);
+                playerHandId = PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand';
+                handDiv = document.getElementById(playerHandId);
+                divsArray = Array.from(handDiv.querySelectorAll('.stockitem'));
+                divId = divsArray[i].id;
+                console.log(divId);
+                this.placeOnObject('cardontable_' + card_id + '_' + player_id + '_' + value, divId);
+                this.playerHands[PLAYERID_TO_DIRECTION[player_id]].removeFromStockById(divId[divId.length-1]);
             } else {
                 // You played a card. If it exists in your hand, move card from there and remove
                 // corresponding item
@@ -531,7 +538,7 @@ function (dojo, declare) {
                 var color = card.type;
                 var value = card.type_arg;
                 var card_id = card.id;
-                this.playCardOnTable(notif.args.player_id, color, value, card_id);
+                this.playCardOnTable(notif.args.player_id, color, value, card_id, i);
             }
         },
         
