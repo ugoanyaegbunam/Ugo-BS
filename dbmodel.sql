@@ -42,3 +42,15 @@ CREATE TABLE IF NOT EXISTS `card` (
   PRIMARY KEY (`card_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
+CREATE TABLE IF NOT EXISTS `player_actions` (
+    `id` INT(10) unsigned NOT NULL AUTO_INCREMENT,
+    `player_id` INT(10) UNSIGNED NOT NULL,
+    `action` ENUM('callBS', 'passBSCall') NOT NULL,
+    `timestamp` INT(11) NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+
+CREATE INDEX `idx_player_id` ON `player_actions`(`player_id`);
+CREATE INDEX `idx_action` ON `player_actions`(`action`);
+CREATE INDEX `idx_timestamp` ON `player_actions`(`timestamp`);

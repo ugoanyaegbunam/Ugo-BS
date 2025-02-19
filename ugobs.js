@@ -366,8 +366,8 @@ function (dojo, declare) {
             }
         },
 
-        giveCard(player, color, value, card_id) {
-            this.addPlaceholderCard(player, color, value, card_id);
+        giveCard(player_id, color, value, card_id) {
+            this.addPlaceholderCard(player_id, color, value, card_id);
 
             if ($('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value)) {
                 this.placeOnObject('placeholder_card_' + player, 'revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value);
@@ -380,10 +380,12 @@ function (dojo, declare) {
 
 
 
-            this.slideToObject('placeholder_card_' + player, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand_wrap').play();
-            this.moveDiv('placeholder_card_' + player, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand_wrap');
+            this.slideToObject('placeholder_card_' + player, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand').play();
+            dojo.destroy('placeholder_card_' + player);
+            this.playerHands[PLAYERID_TO_DIRECTION[player_id]].addToStock(card_back_type_id);
+            // this.moveDiv('placeholder_card_' + player, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand_wrap');
 
-
+            this.sleep(2000);
             console.log(card_id, player_id); // Logs each element
         },
 
@@ -400,6 +402,7 @@ function (dojo, declare) {
             this.slideToObject('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'revealed_playertablecard_pile').play();
             // this.moveDiv('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'revealed_playertablecard_pile');
 
+            this.sleep(2000);
         },
     
         // Get card unique identifier based on its color and value
@@ -413,6 +416,9 @@ function (dojo, declare) {
             newParent.appendChild(element);
         },
 
+        sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+          },
         ///////////////////////////////////////////////////
         //// Player's action
         

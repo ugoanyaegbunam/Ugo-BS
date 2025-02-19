@@ -183,33 +183,69 @@ class Game extends \Table
             'timestamp' => time(),
         ];
 
+
+        if (!empty($this->playerActions)) {
+            $sql = "INSERT INTO player_actions (player_id, action, timestamp) VALUES ";
+            $values = [];
+
+            foreach ($this->playerActions as $entry) {
+                $values[] = "('".$entry['player_id']."','".$entry['action']."','".$entry['timestamp']."')";
+            }
+
+            $sql .= implode(',', $values);
+            $this->DbQuery($sql);
+
         $this->gamestate->setPlayerNonMultiactive($player_id, "");
+        }
     }
 
     public function stHandleDecisions() : void
     {
-        print_r($this->playerActions);
-        // Step 1: Filter the array to get only "callBS" actions
-        $callBSActions = array_filter($this->playerActions, function ($entry) {
-            return $entry['action'] === 'callBS';
-        });
+        // print_r($this->playerActions);
+        // // Step 1: Filter the array to get only "callBS" actions
+        // $callBSActions = array_filter($this->playerActions, function ($entry) {
+        //     return $entry['action'] === 'callBS';
+        // });
 
-        // Step 2: Sort the filtered array by timestamp (ascending order, earliest first)
-        usort($callBSActions, function ($a, $b) {
-            return $a['timestamp'] <=> $b['timestamp']; // Compare timestamps
-        });
+        // // Step 2: Sort the filtered array by timestamp (ascending order, earliest first)
+        // usort($callBSActions, function ($a, $b) {
+        //     return $a['timestamp'] <=> $b['timestamp']; // Compare timestamps
+        // });
 
-        // Step 3: Access the earliest "callBS" action (first item in the sorted array)
-        if (!empty($callBSActions)) {
-            $earliestCallBS = $callBSActions[0]; // This will be the earliest "callBS" action
-            // echo "Earliest callBS action: Player {$earliestCallBS['player_id']} at timestamp {$earliestCallBS['timestamp']}";
-            $this->setGameStateValue("lastBSCaller", $earliestCallBS['player_id']);
+        // // Step 3: Access the earliest "callBS" action (first item in the sorted array)
+        // if (!empty($callBSActions)) {
+        //     $earliestCallBS = $callBSActions[0]; // This will be the earliest "callBS" action
+        //     // echo "Earliest callBS action: Player {$earliestCallBS['player_id']} at timestamp {$earliestCallBS['timestamp']}";
+        //     $this->setGameStateValue("lastBSCaller", $earliestCallBS['player_id']);
+        //     $this->gamestate->nextState('callBS');
+        // } else {
+        //     // echo "No 'callBS' action found.";
+        //     $this->gamestate->nextState('nextPlayer');
+        // }
+
+        $sql = "SELECT player_id, action, timestamp 
+        FROM player_actions 
+        WHERE action = 'callBS' 
+        ORDER BY timestamp ASC
+        LIMIT 1";
+
+        $dbRow = $this->getCollectionFromDb($sql);
+        $firstBSCall = array_values($dbRow)[0];
+        print_r($firstBSCall);
+        if (!empty($firstBSCall)) {
+            print_r("Earliest callBS action: Player {$firstBSCall['player_id']} at timestamp {$firstBSCall['timestamp']}");
+            $this->setGameStateValue("lastBSCaller", $firstBSCall['player_id']);
             $this->gamestate->nextState('callBS');
         } else {
             // echo "No 'callBS' action found.";
             $this->gamestate->nextState('nextPlayer');
         }
-        
+
+        $sql = "DELETE FROM player_actions WHERE id NOT IN (
+            SELECT id FROM (SELECT id FROM player_actions ORDER BY created_at DESC LIMIT 4) AS temp_table
+        )";
+        $this->DbQuery($sql);
+
     }
 
     // public function actCallBS(int $caller_id):
@@ -241,7 +277,7 @@ class Game extends \Table
 
         return [
             "numCardsPlayedLast" => $this->getGameStateValue("numCardsPlayedLast"),
-            "caller" => $this->getGameStateValue("lastBSCaller")
+            "caller" => $this->getPlayerNameById($this->getGameStateValue("lastBSCaller"))
         ];
     }
 
@@ -251,7 +287,7 @@ class Game extends \Table
 
         
         return [
-            "caller" => $this->getGameStateValue("lastBSCaller"),
+            "caller" => $this->getPlayerNameById($this->getGameStateValue("lastBSCaller")),
             "outcome" => OUTCOMES[$this->getGameStateValue("outcome")],
         ];
     }
@@ -357,7 +393,7 @@ class Game extends \Table
             }
     
 
-            $this->gamestate->nextState("nextPlayer");
+        $this->gamestate->nextState("nextPlayer");
         }
 
     /**
