@@ -154,10 +154,10 @@ function (dojo, declare) {
                     // Build card type id
                     const card_type_id = this.getCardUniqueId(color, value);
                     // Change card image style according to the preference option
-                    this.playerHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards1.jpg', card_type_id);
-                    this.leftHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards1.jpg', card_type_id);
-                    this.topHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards1.jpg', card_type_id);
-                    this.rightHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards1.jpg', card_type_id);
+                    this.playerHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards1_cropped.jpg', card_type_id);
+                    this.leftHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards1_cropped.jpg', card_type_id);
+                    this.topHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards1_cropped.jpg', card_type_id);
+                    this.rightHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards1_cropped.jpg', card_type_id);
 
                 }
             const card_back_type_id = 60; // Unique ID for the card back
@@ -322,71 +322,113 @@ function (dojo, declare) {
                 divsArray = Array.from(handDiv.querySelectorAll('.stockitem'));
                 divId = divsArray[i].id;
                 console.log(divId);
-                this.placeOnObject('cardontable_' + card_id + '_' + player_id + '_' + value, divId);
-                this.playerHands[PLAYERID_TO_DIRECTION[player_id]].removeFromStockById(divId[divId.length-1]);
+                this.placeOnObject('cardontable_' + card_id, divId);
+                this.slideToObject('cardontable_' + card_id, 'playertablecard_pile').play();
+                this.playerHands[PLAYERID_TO_DIRECTION[player_id]].removeFromStock(card_back_type_id);
             } else {
                 // You played a card. If it exists in your hand, move card from there and remove
                 // corresponding item
 
                 if ($('my_hand_item_' + card_id)) {
-                    this.placeOnObject('cardontable_' + card_id + '_' + player_id + '_' + value, 'my_hand_item_' + card_id);
+                    this.placeOnObject('cardontable_' + card_id, 'my_hand_item_' + card_id);
+                    this.slideToObject('cardontable_' + card_id, 'playertablecard_pile').play();
                     this.playerHand.removeFromStockById(card_id);
                 }
             }
 
             // In any case: move it to its final destination
-            this.slideToObject('cardontable_' + card_id + '_' + player_id + '_' + value, 'playertablecard_pile').play();
+            // this.slideToObject('cardontable_' + card_id + '_' + player_id + '_' + value, 'playertablecard_pile').play();
         },
 
         addTableCard(value, color, card_player_id, card_id, side) {
             const x = value - 2;
             const y = color - 1;
+            // if (side == 'back') {
+            //     document.getElementById('playertablecard_pile').insertAdjacentHTML('beforeend', `
+            //         <div class="card cardontable" id="cardontable_${card_id}_${card_player_id}_${value}" style="background-position:-1400% -00%"></div>
+            //     `);
+            // } else {
+            // document.getElementById('playertablecard_pile').insertAdjacentHTML('beforeend', `
+            //     <div class="card cardontable" id="revealed_cardontable_${card_id}_${card_player_id}_${color}_${value}" style="background-position:-${x}00% -${y}00%"></div>
+            // `);
+            // }
             if (side == 'back') {
                 document.getElementById('playertablecard_pile').insertAdjacentHTML('beforeend', `
-                    <div class="card cardontable" id="cardontable_${card_id}_${card_player_id}_${value}" style="background-position:-1400% -00%"></div>
+                    <div class="card cardontable" id="cardontable_${card_id}" style="background-position:-1400% -00%"></div>
                 `);
             } else {
-            document.getElementById('playertablecard_pile').insertAdjacentHTML('beforeend', `
-                <div class="card cardontable" id="revealed_cardontable_${card_id}_${card_player_id}_${color}_${value}" style="background-position:-${x}00% -${y}00%"></div>
+            document.getElementById('revealed_playertablecard_pile').insertAdjacentHTML('beforeend', `
+                <div class="card cardontable" id="revealed_cardontable_${card_id}" style="background-position:-${x}00% -${y}00%"></div>
             `);
             }
+
         },
 
         addPlaceholderCard(player_id, color, value, card_id) {
-            if ($('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value)) {
+            if ($('revealed_cardontable_' + card_id)) {
 
                 document.getElementById('revealed_playertablecard_pile').insertAdjacentHTML('beforeend', `
-                    <div class="card cardontable" id="placeholder_card_${player_id}" style="background-position:-1400% -$00%"></div>
+                    <div class="card cardontable" id="placeholder_card_${card_id}" style="background-position:-1400% -$00%"></div>
                 `);
             }
-            else if ($('cardontable_' + card_id + '_' + player_id + '_' + value)) {
+            else if ($('cardontable_' + card_id)) {
                 document.getElementById('playertablecard_pile').insertAdjacentHTML('beforeend', `
-                    <div class="card cardontable" id="placeholder_card_${player_id}" style="background-position:-1400% -$00%"></div>
+                    <div class="card cardontable" id="placeholder_card_${card_id}" style="background-position:-1400% -$00%"></div>
                 `);
             }
         },
 
         giveCard(player_id, color, value, card_id) {
             this.addPlaceholderCard(player_id, color, value, card_id);
+            from = "";
 
-            if ($('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value)) {
-                this.placeOnObject('placeholder_card_' + player, 'revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value);
-                dojo.destroy('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value);
+            // if ($('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value)) {
+            //     this.placeOnObject('placeholder_card_' + player, 'revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value);
+            //     dojo.destroy('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value);
+            // } 
+            // else if ($('cardontable_' + card_id + '_' + player_id + '_' + value)) {
+            //     this.placeOnObject('placeholder_card_' + player, 'cardontable_' + card_id + '_' + player_id + '_' + value);
+            //     dojo.destroy('cardontable_' + card_id + '_' + player_id + '_' + value)
+            // } 
+
+
+
+            // this.slideToObject('placeholder_card_' + player, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand').play();
+            // dojo.destroy('placeholder_card_' + player);
+            // this.playerHands[PLAYERID_TO_DIRECTION[player_id]].addToStock(card_back_type_id);
+            // // this.moveDiv('placeholder_card_' + player, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand_wrap');
+
+            // this.sleep(2000);
+            // console.log(card_id, player_id); // Logs each element
+
+            givenCard = '';
+            
+            if ($('revealed_cardontable_' + card_id)) {
+                from = 'revealed_cardontable_' + card_id;
+                givenCard = document.getElementById('revealed_cardontable_' + card_id);
             } 
-            else if ($('cardontable_' + card_id + '_' + player_id + '_' + value)) {
-                this.placeOnObject('placeholder_card_' + player, 'cardontable_' + card_id + '_' + player_id + '_' + value);
-                dojo.destroy('cardontable_' + card_id + '_' + player_id + '_' + value)
+            else if ($('cardontable_' + card_id)) {
+                from = 'cardontable_' + card_id;
+                givenCard = document.getElementById('cardontable_' + card_id);
             } 
 
+            if (player_id != this.player_id) {
+                // Some opponent played a card
+                this.playerHands[PLAYERID_TO_DIRECTION[player_id]].addToStock(card_back_type_id, from);
+            } else {
+                // You played a card. If it exists in your hand, move card from there and remove
+                this.playerHand.addToStockWithId(this.getCardUniqueId(color, value), card_id, from);
+            }
 
+            givenCard.remove();
+            placeholderCard = document.getElementById('placeholder_card_' + card_id);
+            placeholderCard.remove();
 
-            this.slideToObject('placeholder_card_' + player, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand').play();
-            dojo.destroy('placeholder_card_' + player);
-            this.playerHands[PLAYERID_TO_DIRECTION[player_id]].addToStock(card_back_type_id);
             // this.moveDiv('placeholder_card_' + player, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand_wrap');
 
             this.sleep(2000);
             console.log(card_id, player_id); // Logs each element
+
         },
 
         revealCardOnTable : function(player_id, color, value, card_id) {
@@ -394,15 +436,28 @@ function (dojo, declare) {
 
             // Move card from pile to side and reveal
 
-            if ($('cardontable_' + card_id + '_' + player_id + '_' + value)) {
-                this.placeOnObject('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'cardontable_' + card_id + '_' + player_id + '_' + value);
-                dojo.destroy('cardontable_' + card_id + '_' + player_id + '_' + value);
+            // if ($('cardontable_' + card_id + '_' + player_id + '_' + value)) {
+            //     this.placeOnObject('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'cardontable_' + card_id + '_' + player_id + '_' + value);
+            //     dojo.destroy('cardontable_' + card_id + '_' + player_id + '_' + value);
+            // } 
+
+            // this.slideToObject('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'revealed_playertablecard_pile').play();
+            // // this.moveDiv('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'revealed_playertablecard_pile');
+
+            // this.sleep(2000);
+            if ($('cardontable_' + card_id)) {
+                this.placeOnObject('revealed_cardontable_' + card_id, 'cardontable_' + card_id);
             } 
 
-            this.slideToObject('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'revealed_playertablecard_pile').play();
+            this.slideToObject('revealed_cardontable_' + card_id, 'revealed_playertablecard_pile').play();
             // this.moveDiv('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'revealed_playertablecard_pile');
+            // dojo.destroy('cardontable_' + card_id);
+            divToDelete = document.getElementById('cardontable_' + card_id);
+            divToDelete.remove();
+
 
             this.sleep(2000);
+
         },
     
         // Get card unique identifier based on its color and value
