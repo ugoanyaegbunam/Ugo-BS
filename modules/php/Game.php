@@ -326,10 +326,15 @@ class Game extends \Table
         
         $this->activeNextPlayer();
         $this->playerActions = [];
+        ///// Test if this is the end of the game
+        if ($this->getUniqueValueFromDb("SELECT MIN(player_score) FROM player") > 0)
+            $this->gamestate->nextState("endGame"); // Someone is dropped to 0 or below, trigger the end of the game !
+        else $this->gamestate->nextState("nextPlayer"); // Otherwise, start a new hand
+    
 
         // Go to another gamestate
         // Here, we would detect if the game is over, and in this case use "endGame" transition instead 
-        $this->gamestate->nextState("nextPlayer");
+        // $this->gamestate->nextState("nextPlayer");
     }
 
     // public function stOfferBSCall() {
@@ -617,4 +622,6 @@ class Game extends \Table
     {
         return $this->getGameStateValue("receiver");
     }
+    function dbSetScore ($player_id, $count) {$this->DbQuery("UPDATE player SET player_score = '$count' WHERE player_id = '$player_id'");}
+
 }

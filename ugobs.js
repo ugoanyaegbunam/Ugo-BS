@@ -112,7 +112,7 @@ function (dojo, declare) {
             this.leftHand = new ebg.stock();
             this.leftHand.create(this, $('left_hand'), this.cardwidth, this.cardheight);
             this.leftHand.centerItems = true;
-            this.leftHand.image_items_per_row = 15;
+            this.leftHand.image_items_per_row = 13;
             this.leftHand.apparenceBorderWidth = '2px'; // Change border width when selected
             this.leftHand.setSelectionMode(0); // Select only a single card
             this.leftHand.horizontal_overlap = 28;
@@ -123,7 +123,7 @@ function (dojo, declare) {
             this.topHand = new ebg.stock();
             this.topHand.create(this, $('top_hand'), this.cardwidth, this.cardheight);
             this.topHand.centerItems = true;
-            this.topHand.image_items_per_row = 15;
+            this.topHand.image_items_per_row = 13;
             this.topHand.apparenceBorderWidth = '2px'; // Change border width when selected
             this.topHand.setSelectionMode(0); // Select only a single card
             this.topHand.horizontal_overlap = 28;
@@ -134,7 +134,7 @@ function (dojo, declare) {
             this.rightHand = new ebg.stock();
             this.rightHand.create(this, $('right_hand'), this.cardwidth, this.cardheight);
             this.rightHand.centerItems = true;
-            this.rightHand.image_items_per_row = 15;
+            this.rightHand.image_items_per_row = 13;
             this.rightHand.apparenceBorderWidth = '2px'; // Change border width when selected
             this.rightHand.setSelectionMode(0); // Select only a single card
             this.rightHand.horizontal_overlap = 28;
@@ -161,10 +161,10 @@ function (dojo, declare) {
 
                 }
             const card_back_type_id = 60; // Unique ID for the card back
-            this.playerHand.addItemType(card_back_type_id, card_back_type_id, g_gamethemeurl + 'img/cards1.jpg', 14);
-            this.leftHand.addItemType(card_back_type_id, card_back_type_id, g_gamethemeurl + 'img/cards1.jpg', 14);
-            this.topHand.addItemType(card_back_type_id, card_back_type_id, g_gamethemeurl + 'img/cards1.jpg', 14);
-            this.rightHand.addItemType(card_back_type_id, card_back_type_id, g_gamethemeurl + 'img/cards1.jpg', 14);
+            this.playerHand.addItemType(card_back_type_id, card_back_type_id, g_gamethemeurl + 'img/cards1_cropped_with_back.jpg', 12);
+            this.leftHand.addItemType(card_back_type_id, card_back_type_id, g_gamethemeurl + 'img/cards1_cropped_with_back.jpg', 12);
+            this.topHand.addItemType(card_back_type_id, card_back_type_id, g_gamethemeurl + 'img/cards1_cropped_with_back.jpg', 12);
+            this.rightHand.addItemType(card_back_type_id, card_back_type_id, g_gamethemeurl + 'img/cards1_cropped_with_back.jpg', 12);
 
             // Cards in player's hand
             for (let i in gamedatas.hand) {
@@ -196,7 +196,7 @@ function (dojo, declare) {
                 const player_id = card.location_arg;
                 this.addTableCard(value, color, player_id, card.id, "back");
             }
-
+            console.log(this.player_id);
             console.log(gamedatas.numCards);
             console.log(PLAYERID_TO_DIRECTION);
             console.log(orderedPlayers[1]["id"]);
@@ -426,7 +426,6 @@ function (dojo, declare) {
 
             // this.moveDiv('placeholder_card_' + player, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand_wrap');
 
-            this.sleep(2000);
             console.log(card_id, player_id); // Logs each element
 
         },
@@ -454,10 +453,6 @@ function (dojo, declare) {
             // dojo.destroy('cardontable_' + card_id);
             divToDelete = document.getElementById('cardontable_' + card_id);
             divToDelete.remove();
-
-
-            this.sleep(2000);
-
         },
     
         // Get card unique identifier based on its color and value
