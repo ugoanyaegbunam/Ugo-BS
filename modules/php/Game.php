@@ -231,9 +231,9 @@ class Game extends \Table
 
         $dbRow = $this->getCollectionFromDb($sql);
         $firstBSCall = array_values($dbRow)[0];
-        print_r($firstBSCall);
+        // print_r($firstBSCall);
         if (!empty($firstBSCall)) {
-            print_r("Earliest callBS action: Player {$firstBSCall['player_id']} at timestamp {$firstBSCall['timestamp']}");
+            print_r("Earliest callBS action: Player {$this->getPlayerNameById($firstBSCall['player_id'])} at timestamp {$firstBSCall['timestamp']}");
             $this->setGameStateValue("lastBSCaller", $firstBSCall['player_id']);
             $this->gamestate->nextState('callBS');
         } else {
@@ -346,27 +346,44 @@ class Game extends \Table
     
     public function stCallBS(): void {
         // print_r( $this->cards->getCardsOnTop($this->getGameStateValue("numCardsPlayedLast"), "cardsontable"));
-        $this->notifyAllPlayers('BSCalled', clienttranslate('${caller} called BS on ${player_name}'), array (
-            'i18n' => array ('caller','player_name', 'cards' ),'caller' => $this->getPlayerNameById($this->getGameStateValue("lastBSCaller")),
-            'player_name' => $this->getPlayerNameById($this->getGameStateValue("lastPlayer")),
-            'cards' => $this->cards->getCardsOnTop($this->getGameStateValue("numCardsPlayedLast"), "cardsontable"),
-            'player_id' => $this->getGameStateValue("lastPlayer")));
+
+        $cards = $this->cards->getCardsOnTop($this->getGameStateValue("numCardsPlayedLast"), "cardsontable");
+        foreach ($cards as $card){
+
+            $this->notifyAllPlayers('BSCalled', clienttranslate('${caller} called BS on ${player_name}'), array (
+                'i18n' => array ('caller','player_name', 'cards' ),'caller' => $this->getPlayerNameById($this->getGameStateValue("lastBSCaller")),
+                'player_name' => $this->getPlayerNameById($this->getGameStateValue("lastPlayer")),
+                'card' => $card,
+                'player_id' => $this->getGameStateValue("lastPlayer")));
+        }
 
         $wasBS = false;
         $cards_called = $this->cards->getCardsOnTop($this->getGameStateValue("numCardsPlayedLast"), "cardsontable");
         // print_r($cards_called);
         $caller = ($this->getGameStateValue("lastBSCaller"));
         $needed_card = $this->getGameStateValue("turnCard")/11;
+        print_r("{$needed_card}");
+        print_r("\n");
 
         foreach ($cards_called as $card) {
             if ($card['type_arg'] != $needed_card) {
+                print_r("{$card['type_arg']}");
+                print_r("\n");
                 $wasBS = true;
-                $this->setGameStateValue("receiver", $this->getGameStateValue("lastPlayer"));
-                $this->setGameStateValue("outcome", 41);
+                // $this->setGameStateValue("receiver", $this->getGameStateValue("lastPlayer"));
+                // $this->setGameStateValue("outcome", 41);
             }else{
-                $this->setGameStateValue("receiver", $caller);
-                $this->setGameStateValue("outcome", 40);
+                // $this->setGameStateValue("receiver", $caller);
+                // $this->setGameStateValue("outcome", 40);
             }
+        }
+
+        if ($wasBS){
+            $this->setGameStateValue("receiver", $this->getGameStateValue("lastPlayer"));
+            $this->setGameStateValue("outcome", 41);
+        } else {
+            $this->setGameStateValue("receiver", $caller);
+            $this->setGameStateValue("outcome", 40);
         }
 
         $this->gamestate->nextState("givePile");
@@ -387,14 +404,18 @@ class Game extends \Table
 
         
         if ( $receiver == $caller) {
-            $this->notifyAllPlayers('BSHandled', clienttranslate('It wasn\'t BS!'), array (
-                'i18n' => array ('player', 'cards_to_give' ),
-                'player_id' => $caller, 'cards' => $cards_to_give));
+            foreach ($cards_to_give as $card) {
+                $this->notifyAllPlayers('BSHandled', clienttranslate('It wasn\'t BS!'), array (
+                    'i18n' => array ('player', 'card_to_give' ),
+                    'player_id' => $caller, 'card' => $card));
+            }
     
             } else {
-            $this->notifyAllPlayers('BSHandled', clienttranslate('It was BS!'), array (
-                'i18n' => array ('player', 'cards_to_give' ),
-                'player_id' => $receiver, 'cards' => $cards_to_give));
+            foreach ($cards_to_give as $card) {
+                $this->notifyAllPlayers('BSHandled', clienttranslate('It was BS!'), array (
+                    'i18n' => array ('player', 'card_to_give' ),
+                    'player_id' => $receiver, 'card' => $card));
+                }
             }
     
 

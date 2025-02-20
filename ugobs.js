@@ -404,25 +404,29 @@ function (dojo, declare) {
             givenCard = '';
             
             if ($('revealed_cardontable_' + card_id)) {
-                from = 'revealed_cardontable_' + card_id;
+                from = 'revealed_playertablecard_pile';
                 givenCard = document.getElementById('revealed_cardontable_' + card_id);
             } 
             else if ($('cardontable_' + card_id)) {
-                from = 'cardontable_' + card_id;
+                from = 'playertablecard_pile';
                 givenCard = document.getElementById('cardontable_' + card_id);
             } 
 
+            console.log(from);
+
+            givenCard.remove();
+            placeholderCard = document.getElementById('placeholder_card_' + card_id);
+            placeholderCard.remove();
+
             if (player_id != this.player_id) {
                 // Some opponent played a card
+                // this.slideToObjectAndDestroy( givenCard, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand', 3000, 3000);
                 this.playerHands[PLAYERID_TO_DIRECTION[player_id]].addToStock(card_back_type_id, from);
             } else {
                 // You played a card. If it exists in your hand, move card from there and remove
                 this.playerHand.addToStockWithId(this.getCardUniqueId(color, value), card_id, from);
             }
 
-            givenCard.remove();
-            placeholderCard = document.getElementById('placeholder_card_' + card_id);
-            placeholderCard.remove();
 
             // this.moveDiv('placeholder_card_' + player, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand_wrap');
 
@@ -570,7 +574,7 @@ function (dojo, declare) {
     
             notifs.forEach((notif) => {
                 dojo.subscribe(notif[0], this, `notif_${notif[0]}`);
-                this.notifqueue.setSynchronous(notif[0], notif[1], notif[2], notif[3]);
+                this.notifqueue.setSynchronous(notif[0], 3000);
             });
 
         },
@@ -599,24 +603,20 @@ function (dojo, declare) {
         },
         
         notif_BSCalled : function(notif) {
-            for ( var i in notif.args.cards) {
-                var card = notif.args.cards[i];
-                var color = card.type;
-                var value = card.type_arg;
-                var card_id = card.id;
-                this.revealCardOnTable(notif.args.player_id, color, value, card_id)
-            }
+            var card = notif.args.card;
+            var color = card.type;
+            var value = card.type_arg;
+            var card_id = card.id;
+            this.revealCardOnTable(notif.args.player_id, color, value, card_id)
 
         },
 
         notif_BSHandled : function(notif) {
-            for ( var i in notif.args.cards) {
-                var card = notif.args.cards[i];
-                var color = card.type;
-                var value = card.type_arg;
-                var card_id = card.id;
-                this.giveCard(notif.args.player_id, color, value, card_id)
-            }
+            var card = notif.args.card;
+            var color = card.type;
+            var value = card.type_arg;
+            var card_id = card.id;
+            this.giveCard(notif.args.player_id, color, value, card_id)
         }
         // TODO: from this point and below, you can write your game notifications handling methods
         
