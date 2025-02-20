@@ -419,9 +419,10 @@ function (dojo, declare) {
                 this.playerHands[PLAYERID_TO_DIRECTION[player_id]].addToStock(card_back_type_id);
             } else {
                 // You played a card. If it exists in your hand, move card from there and remove
+                givenCard.remove();
                 this.playerHand.addToStockWithId(this.getCardUniqueId(color, value), card_id, from);
             }
-            givenCard.remove();
+            
 
             console.log(from);
 
