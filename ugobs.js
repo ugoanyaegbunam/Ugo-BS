@@ -379,8 +379,7 @@ function (dojo, declare) {
         },
 
         giveCard(player_id, color, value, card_id) {
-            this.addPlaceholderCard(player_id, color, value, card_id);
-            from = "";
+            // this.addPlaceholderCard(player_id, color, value, card_id);
 
             // if ($('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value)) {
             //     this.placeOnObject('placeholder_card_' + player, 'revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value);
@@ -412,22 +411,23 @@ function (dojo, declare) {
                 givenCard = document.getElementById('cardontable_' + card_id);
             } 
 
-            console.log(from);
 
-            givenCard.remove();
-            placeholderCard = document.getElementById('placeholder_card_' + card_id);
-            placeholderCard.remove();
 
             if (player_id != this.player_id) {
                 // Some opponent played a card
-                // this.slideToObjectAndDestroy( givenCard, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand', 3000, 3000);
-                this.playerHands[PLAYERID_TO_DIRECTION[player_id]].addToStock(card_back_type_id, from);
+                this.slideToObjectAndDestroy(givenCard, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand').play();
+                this.playerHands[PLAYERID_TO_DIRECTION[player_id]].addToStock(card_back_type_id);
             } else {
                 // You played a card. If it exists in your hand, move card from there and remove
                 this.playerHand.addToStockWithId(this.getCardUniqueId(color, value), card_id, from);
             }
+            givenCard.remove();
 
+            console.log(from);
 
+            // givenCard.remove();
+            // placeholderCard = document.getElementById('placeholder_card_' + card_id);
+            // placeholderCard.remove();
             // this.moveDiv('placeholder_card_' + player, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand_wrap');
 
             console.log(card_id, player_id); // Logs each element

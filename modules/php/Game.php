@@ -233,7 +233,7 @@ class Game extends \Table
         $firstBSCall = array_values($dbRow)[0];
         // print_r($firstBSCall);
         if (!empty($firstBSCall)) {
-            print_r("Earliest callBS action: Player {$this->getPlayerNameById($firstBSCall['player_id'])} at timestamp {$firstBSCall['timestamp']}");
+            // print_r("Earliest callBS action: Player {$this->getPlayerNameById($firstBSCall['player_id'])} at timestamp {$firstBSCall['timestamp']}");
             $this->setGameStateValue("lastBSCaller", $firstBSCall['player_id']);
             $this->gamestate->nextState('callBS');
         } else {
@@ -316,6 +316,13 @@ class Game extends \Table
      * The action method of state `nextPlayer` is called everytime the current game state is set to `nextPlayer`.
      */
     public function stNextPlayer(): void {
+        //Increment score if we've gotten away with moving onto the next player and they have no cards.
+        $idToNumCards = $this->cards->countCardsByLocationArgs('hand');
+        foreach ($idToNumCards as $key => $value) {
+            if ($value == 0) {
+                $this->dbSetScore($key, 1);
+            }        
+        }
         // Retrieve the active player ID.
         $player_id = (int)$this->getActivePlayerId();
 
@@ -362,13 +369,14 @@ class Game extends \Table
         // print_r($cards_called);
         $caller = ($this->getGameStateValue("lastBSCaller"));
         $needed_card = $this->getGameStateValue("turnCard")/11;
-        print_r("{$needed_card}");
-        print_r("\n");
+        // print_r("needed card is {$needed_card}");
+        // print_r("\n");
+        // echo "does this work";
 
         foreach ($cards_called as $card) {
             if ($card['type_arg'] != $needed_card) {
-                print_r("{$card['type_arg']}");
-                print_r("\n");
+                // print_r("card played is{$card['type_arg']}");
+                // print_r("\n");
                 $wasBS = true;
                 // $this->setGameStateValue("receiver", $this->getGameStateValue("lastPlayer"));
                 // $this->setGameStateValue("outcome", 41);
