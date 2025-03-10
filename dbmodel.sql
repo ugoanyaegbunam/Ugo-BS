@@ -54,3 +54,12 @@ CREATE TABLE IF NOT EXISTS `player_actions` (
 CREATE INDEX `idx_player_id` ON `player_actions`(`player_id`);
 CREATE INDEX `idx_action` ON `player_actions`(`action`);
 CREATE INDEX `idx_timestamp` ON `player_actions`(`timestamp`);
+
+CREATE TABLE IF NOT EXISTS `prev_turn_cards` (
+  `card_id` int(10) unsigned NOT NULL,
+  `card_type` varchar(16) NOT NULL,
+  `card_type_arg` int(11) NOT NULL,
+  `card_location` varchar(16) NOT NULL,
+  `card_location_arg` int(11) NOT NULL,
+  PRIMARY KEY (`card_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

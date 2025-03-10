@@ -19,7 +19,7 @@
  const PLACEMENTS = ['my', 'left', 'top', 'right']
  const DIRECTIONS = ['S', 'W', 'N', 'E']
  const PLAYERID_TO_DIRECTION = {}
- const card_back_type_id = 60; // Unique ID for the card back
+ const card_back_type_id = 60; 
 
 
 define([
@@ -33,12 +33,10 @@ function (dojo, declare) {
         constructor: function(){
             console.log('ugobs constructor');
               
-            // Here, you can init the global variables of your user interface
-            // Example:
-            // this.myGlobalValue = 0;
+            // Global variables
             this.cardwidth = 72;
             this.cardheight = 96;
-
+            this.playerHands = [];
 
         },
         
@@ -59,12 +57,13 @@ function (dojo, declare) {
         {
             console.log( "Starting game setup" );
 
+            // Create a way to reference divs by id without having to stop creating them dynamically
             const orderedPlayers = this.getOrderedPlayers(gamedatas);
             for (let i in orderedPlayers) {
                 PLAYERID_TO_DIRECTION[orderedPlayers[i].id] = i;
             }
 
-
+            // HTML layout (Game Interface)
             document.getElementById('game_play_area').insertAdjacentHTML('beforeend', `
                 <div id="game_board_wrap"> 
                     <div id="game_board">
@@ -92,11 +91,8 @@ function (dojo, declare) {
                     </div>
                 </div>
             `);
-
-            // document.getElementById('bs_button').addEventListener('click', callBS);
             
 
-            this.playerHands = [];
             // Player hand
             this.playerHand = new ebg.stock();
             this.playerHand.create(this, $('my_hand'), this.cardwidth, this.cardheight);
@@ -141,9 +137,7 @@ function (dojo, declare) {
             this.rightHand.item_margin = 0;
             this.playerHands.push(this.rightHand);
 
-
-            // dojo.connect(this.playerHand, 'onChangeSelection', this, 'onHandCardSelect');
-            // dojo.connect( this.playerHand, 'onChangeSelection', this, 'onPlayerHandSelectionChanged' );
+            // Link functions to buttons
             dojo.connect(dojo.byId("play_button"), 'click', this, 'playSelectedCards');
             dojo.connect(dojo.byId("bs_button"), 'click', this, 'callBS');
             dojo.connect(dojo.byId("pass_button"), 'click', this, 'passBSCall');
@@ -160,7 +154,8 @@ function (dojo, declare) {
                     this.rightHand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards1_cropped.jpg', card_type_id);
 
                 }
-            const card_back_type_id = 60; // Unique ID for the card back
+
+            // Add card backs to hands
             this.playerHand.addItemType(card_back_type_id, card_back_type_id, g_gamethemeurl + 'img/cards1_cropped_with_back.jpg', 12);
             this.leftHand.addItemType(card_back_type_id, card_back_type_id, g_gamethemeurl + 'img/cards1_cropped_with_back.jpg', 12);
             this.topHand.addItemType(card_back_type_id, card_back_type_id, g_gamethemeurl + 'img/cards1_cropped_with_back.jpg', 12);
@@ -173,19 +168,21 @@ function (dojo, declare) {
                 const value = card.type_arg;
                 this.playerHand.addToStockWithId(this.getCardUniqueId(color, value), card.id);
             }
+
+            // Gameplay hindered when more cards are displayed so we display at most 13
             // Cards in left hand
             left_player = this.getOrderedPlayers(gamedatas)[1].id;
-            for (let i = 0; i < gamedatas.numCards[left_player]; i++) {
+            for (let i = 0; i < Math.min(13, gamedatas.numCards[left_player]); i++) {
                 this.leftHand.addToStock(card_back_type_id, 'overall_player_board_' + left_player);
             }
             // Cards in top hand
             top_player = this.getOrderedPlayers(gamedatas)[2].id;
-            for (let i = 0; i < gamedatas.numCards[top_player]; i++) {
+            for (let i = 0; i < Math.min(13, gamedatas.numCards[top_player]); i++) {
                 this.topHand.addToStock(card_back_type_id, 'overall_player_board_' + top_player);
             }
             // Cards in right hand
             right_player = this.getOrderedPlayers(gamedatas)[3].id;
-            for (let i = 0; i < gamedatas.numCards[right_player]; i++) {
+            for (let i = 0; i < Math.min(13, gamedatas.numCards[right_player]); i++) {
                 this.rightHand.addToStock(card_back_type_id, 'overall_player_board_' + right_player);
             }
             // Cards played on table
@@ -195,16 +192,7 @@ function (dojo, declare) {
                 const value = card.type_arg;
                 const player_id = card.location_arg;
                 this.addTableCard(value, color, player_id, card.id, "back");
-            }
-            console.log(this.player_id);
-            console.log(gamedatas.numCards);
-            console.log(PLAYERID_TO_DIRECTION);
-            console.log(orderedPlayers[1]["id"]);
-
-            
-            
-            // TODO: Set up your game interface here, according to "gamedatas"
-            
+            }            
  
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
@@ -214,6 +202,7 @@ function (dojo, declare) {
 
        
 
+        // I don't do anything here, not really necessary for this gaem in my opinion
         ///////////////////////////////////////////////////
         //// Game & client states
         
@@ -276,22 +265,6 @@ function (dojo, declare) {
         {
             console.log( 'onUpdateActionButtons: '+stateName, args );
                       
-            if( this.isCurrentPlayerActive() )
-            {            
-                switch( stateName )
-                {
-                 case 'playerTurn':    
-                    const playableCardsIds = args.playableCardsIds; // returned by the argPlayerTurn
-
-                    // Add test action buttons in the action status bar, simulating a card click:
-                    playableCardsIds.forEach(
-                        cardId => this.addActionButton(`actPlayCard${cardId}-btn`, _('Play card with id ${card_id}').replace('${card_id}', cardId), () => this.onCardClick(cardId))
-                    ); 
-
-                    this.addActionButton('actPass-btn', _('Pass'), () => this.bgaPerformAction("actPass"), null, null, 'gray'); 
-                    break;
-                }
-            }
         },        
 
         ///////////////////////////////////////////////////
@@ -303,6 +276,8 @@ function (dojo, declare) {
             script.
         
         */
+
+        // Returns players in order of play
         getOrderedPlayers(gamedatas) {
             const players = Object.values(gamedatas.players).sort((a, b) => a.playerNo - b.playerNo);
             const playerIndex = players.findIndex(player => Number(player.id) === Number(this.player_id));
@@ -310,48 +285,40 @@ function (dojo, declare) {
             return orderedPlayers;
         },
 
-        playCardOnTable : function(player_id, color, value, card_id, i) {
-            // player_id => direction
+        // Random number for showing other player card play
+        getRandomIndex(handSize) { return Math.floor(Math.random() * (handSize + 1));},
+
+        // Animates cards being played
+        playCardOnTable : function(player_id, color, value, card_id, handSize) {
             this.addTableCard(value, color, player_id, card_id, "back");
 
             if (player_id != this.player_id) {
                 // Some opponent played a card
-                // Move card from player panel
+                // 1) See bottom of file
+                index = this.getRandomIndex(handSize);
                 playerHandId = PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand';
                 handDiv = document.getElementById(playerHandId);
                 divsArray = Array.from(handDiv.querySelectorAll('.stockitem'));
-                divId = divsArray[i].id;
-                console.log(divId);
+                divId = divsArray[index].id;
                 this.placeOnObject('cardontable_' + card_id, divId);
                 this.slideToObject('cardontable_' + card_id, 'playertablecard_pile').play();
                 this.playerHands[PLAYERID_TO_DIRECTION[player_id]].removeFromStock(card_back_type_id);
             } else {
                 // You played a card. If it exists in your hand, move card from there and remove
                 // corresponding item
-
                 if ($('my_hand_item_' + card_id)) {
                     this.placeOnObject('cardontable_' + card_id, 'my_hand_item_' + card_id);
                     this.slideToObject('cardontable_' + card_id, 'playertablecard_pile').play();
                     this.playerHand.removeFromStockById(card_id);
                 }
             }
-
-            // In any case: move it to its final destination
-            // this.slideToObject('cardontable_' + card_id + '_' + player_id + '_' + value, 'playertablecard_pile').play();
+            console.log("Just showed the card being played");
         },
 
+        // Initializes the div we use to show the card being played and that will sit in the pile
         addTableCard(value, color, card_player_id, card_id, side) {
             const x = value - 2;
             const y = color - 1;
-            // if (side == 'back') {
-            //     document.getElementById('playertablecard_pile').insertAdjacentHTML('beforeend', `
-            //         <div class="card cardontable" id="cardontable_${card_id}_${card_player_id}_${value}" style="background-position:-1400% -00%"></div>
-            //     `);
-            // } else {
-            // document.getElementById('playertablecard_pile').insertAdjacentHTML('beforeend', `
-            //     <div class="card cardontable" id="revealed_cardontable_${card_id}_${card_player_id}_${color}_${value}" style="background-position:-${x}00% -${y}00%"></div>
-            // `);
-            // }
             if (side == 'back') {
                 document.getElementById('playertablecard_pile').insertAdjacentHTML('beforeend', `
                     <div class="card cardontable" id="cardontable_${card_id}" style="background-position:-1400% -00%"></div>
@@ -360,46 +327,13 @@ function (dojo, declare) {
             document.getElementById('revealed_playertablecard_pile').insertAdjacentHTML('beforeend', `
                 <div class="card cardontable" id="revealed_cardontable_${card_id}" style="background-position:-${x}00% -${y}00%"></div>
             `);
+            console.log("Just created table card div")
             }
 
         },
-
-        addPlaceholderCard(player_id, color, value, card_id) {
-            if ($('revealed_cardontable_' + card_id)) {
-
-                document.getElementById('revealed_playertablecard_pile').insertAdjacentHTML('beforeend', `
-                    <div class="card cardontable" id="placeholder_card_${card_id}" style="background-position:-1400% -$00%"></div>
-                `);
-            }
-            else if ($('cardontable_' + card_id)) {
-                document.getElementById('playertablecard_pile').insertAdjacentHTML('beforeend', `
-                    <div class="card cardontable" id="placeholder_card_${card_id}" style="background-position:-1400% -$00%"></div>
-                `);
-            }
-        },
-
+        
+        // Animates giving cards to players
         giveCard(player_id, color, value, card_id) {
-            // this.addPlaceholderCard(player_id, color, value, card_id);
-
-            // if ($('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value)) {
-            //     this.placeOnObject('placeholder_card_' + player, 'revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value);
-            //     dojo.destroy('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value);
-            // } 
-            // else if ($('cardontable_' + card_id + '_' + player_id + '_' + value)) {
-            //     this.placeOnObject('placeholder_card_' + player, 'cardontable_' + card_id + '_' + player_id + '_' + value);
-            //     dojo.destroy('cardontable_' + card_id + '_' + player_id + '_' + value)
-            // } 
-
-
-
-            // this.slideToObject('placeholder_card_' + player, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand').play();
-            // dojo.destroy('placeholder_card_' + player);
-            // this.playerHands[PLAYERID_TO_DIRECTION[player_id]].addToStock(card_back_type_id);
-            // // this.moveDiv('placeholder_card_' + player, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand_wrap');
-
-            // this.sleep(2000);
-            // console.log(card_id, player_id); // Logs each element
-
             givenCard = '';
             
             if ($('revealed_cardontable_' + card_id)) {
@@ -422,42 +356,22 @@ function (dojo, declare) {
                 givenCard.remove();
                 this.playerHand.addToStockWithId(this.getCardUniqueId(color, value), card_id, from);
             }
-            
-
-            console.log(from);
-
-            // givenCard.remove();
-            // placeholderCard = document.getElementById('placeholder_card_' + card_id);
-            // placeholderCard.remove();
-            // this.moveDiv('placeholder_card_' + player, PLACEMENTS[PLAYERID_TO_DIRECTION[player_id]] + '_hand_wrap');
-
-            console.log(card_id, player_id); // Logs each element
-
+            console.log("Just showed card being given");
         },
 
+        // Animates card reveal
         revealCardOnTable : function(player_id, color, value, card_id) {
             this.addTableCard(value, color, player_id, card_id, "front");
 
             // Move card from pile to side and reveal
-
-            // if ($('cardontable_' + card_id + '_' + player_id + '_' + value)) {
-            //     this.placeOnObject('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'cardontable_' + card_id + '_' + player_id + '_' + value);
-            //     dojo.destroy('cardontable_' + card_id + '_' + player_id + '_' + value);
-            // } 
-
-            // this.slideToObject('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'revealed_playertablecard_pile').play();
-            // // this.moveDiv('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'revealed_playertablecard_pile');
-
-            // this.sleep(2000);
             if ($('cardontable_' + card_id)) {
                 this.placeOnObject('revealed_cardontable_' + card_id, 'cardontable_' + card_id);
             } 
 
             this.slideToObject('revealed_cardontable_' + card_id, 'revealed_playertablecard_pile').play();
-            // this.moveDiv('revealed_cardontable_' + card_id + '_' + player_id + '_' + color + '_' + value, 'revealed_playertablecard_pile');
-            // dojo.destroy('cardontable_' + card_id);
             divToDelete = document.getElementById('cardontable_' + card_id);
             divToDelete.remove();
+            console.log("Just animated card being given");
         },
     
         // Get card unique identifier based on its color and value
@@ -465,15 +379,7 @@ function (dojo, declare) {
             return (color - 1) * 13 + (value - 2);
         },
 
-        moveDiv(div, target) {
-            element = document.getElementById(div);
-            newParent = document.getElementById(target);
-            newParent.appendChild(element);
-        },
 
-        sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-          },
         ///////////////////////////////////////////////////
         //// Player's action
         
@@ -488,6 +394,7 @@ function (dojo, declare) {
         
         */
         
+        // Send play to server
         playSelectedCards : function() {
             var items = this.playerHand.getSelectedItems();
 
@@ -499,7 +406,6 @@ function (dojo, declare) {
                     // Can play a card
                     var card_ids = items.map(card => card.id).join(',');  
                     console.log(card_ids)    
-                    // var card_id = items[0].id              
                     this.bgaPerformAction(action, {
                         card_ids : card_ids,
                     });
@@ -509,19 +415,22 @@ function (dojo, declare) {
                     this.playerHand.unselectAll();
                 }
             }
+            console.log("Just sent card play to server");
         },
 
+        // Send BS call to server
         callBS: function() {
             var decision = 1;
             var action = "actSubmitDecision"
             if (this.checkAction(action, true)) {
-                this.bgaPerformAction(action, {decision : decision});
-                this.showMessage(_('You have elected to call BS'))
+                this.bgaPerformAction(action, {decision : decision});                
+                this.showMessage(_('You have elected to call BS'));
 
             }
-            
+            console.log("Just sent BS Call to server");
         },
 
+        // Send pass of BS call to server
         passBSCall : function() {
             var decision = 0;
             var action = "actSubmitDecision"
@@ -529,22 +438,8 @@ function (dojo, declare) {
                 this.bgaPerformAction(action, {decision : decision});
                 this.showMessage(_('You have elected to pass'))
             }
-
+            console.log("Just sent passBSCall to server");
         },
-
-        // Example:
-        
-        onCardClick: function( card_id )
-        {
-            console.log( 'onCardClick', card_id );
-
-            this.bgaPerformAction("actPlayCard", { 
-                card_id,
-            }).then(() =>  {                
-                // What to do after the server call if it succeeded
-                // (most of the time, nothing, as the game will react to notifs / change of state instead)
-            });        
-        },    
 
         
         ///////////////////////////////////////////////////
@@ -563,21 +458,27 @@ function (dojo, declare) {
         {
             console.log( 'notifications subscriptions setup' );
             
-            // TODO: here, associate your game notifications with local methods
+            // Associate your game notifications with local methods
             
             const notifs = [
                 ['newHand', 1],
                 ['playCard', 100],
+            ];
+            
+            const delayedNotifs = [
                 ['BSCalled', 101],
                 ['BSHandled', 102]
-
-            ];
+            ]
     
             notifs.forEach((notif) => {
                 dojo.subscribe(notif[0], this, `notif_${notif[0]}`);
-                this.notifqueue.setSynchronous(notif[0], 3000);
+                this.notifqueue.setSynchronous(notif[0], 1000);
             });
 
+            delayedNotifs.forEach((notif) => {
+                dojo.subscribe(notif[0], this, `notif_${notif[0]}`);
+                this.notifqueue.setSynchronous(notif[0], 2000);
+            });
         },
 
         notif_newHand : function(notif) {
@@ -593,47 +494,42 @@ function (dojo, declare) {
         },
 
         notif_playCard : function(notif) {
-            // Play a card on the table
+            // Card has been played on the table
+            var handSize = notif.args.handSize;
             for (var i in notif.args.cards) {
                 var card = notif.args.cards[i];
                 var color = card.type;
                 var value = card.type_arg;
                 var card_id = card.id;
-                this.playCardOnTable(notif.args.player_id, color, value, card_id, i);
+                this.playCardOnTable(notif.args.player_id, color, value, card_id, handSize);
             }
         },
         
         notif_BSCalled : function(notif) {
+            // Someone called BS
             var card = notif.args.card;
             var color = card.type;
             var value = card.type_arg;
             var card_id = card.id;
             this.revealCardOnTable(notif.args.player_id, color, value, card_id)
 
+
         },
 
         notif_BSHandled : function(notif) {
-            var card = notif.args.card;
-            var color = card.type;
-            var value = card.type_arg;
-            var card_id = card.id;
-            this.giveCard(notif.args.player_id, color, value, card_id)
+            // The BS call has been resolved
+            for (var i in notif.args.cards) {
+                var card = notif.args.cards[i];
+                var color = card.type;
+                var value = card.type_arg;
+                var card_id = card.id;
+                this.giveCard(notif.args.player_id, color, value, card_id)
+            }
         }
-        // TODO: from this point and below, you can write your game notifications handling methods
-        
-        /*
-        Example:
-        
-        notif_cardPlayed: function( notif )
-        {
-            console.log( 'notif_cardPlayed' );
-            console.log( notif );
-            
-            // Note: notif.args contains the arguments specified during you "notifyAllPlayers" / "notifyPlayer" PHP call
-            
-            // TODO: play the card in the user interface.
-        },    
-        
-        */
    });             
 });
+
+// 1)  I had to do that div silliness because of the way stock works. Since it is a card back and doesn't have a specific id,
+// the div instances are created dynamically as stockitem1, stockitem2, etc. However, when the first one dissapears after I remove it, the next element to be removed
+// would be 2, but if they refreshed the screen, it would go back to 1. I didn't want to do a bunch of crazy checking to predict div names so I figured I'd just literally
+// round up all the divs.

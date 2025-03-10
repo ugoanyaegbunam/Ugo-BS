@@ -51,7 +51,6 @@
 
 
 $machinestates = [
-
     // The initial state. Please do not modify.
 
     1 => array(
@@ -90,7 +89,7 @@ $machinestates = [
     6 => [
         'name' => 'offerBSCall',
         'description' => clienttranslate('Waiting for other players to make their decisions.'),
-        'descriptionmyturn' => clienttranslate('If ${you} would like to call BS, you may do so in the next 15 seconds. Speak now, or forever hold your peace.'),
+        'descriptionmyturn' => clienttranslate('If ${you} would like to call BS, do so. Otherwise pass.'),
         'type' => 'multipleactiveplayer',
         "action" => "stMakeEveryoneActive",
         'possibleactions' => [ 'actSubmitDecision', 'submitDecision' ],

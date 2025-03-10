@@ -67,6 +67,8 @@
     }
 */
 
+/* Some of this is taken from the hearts tutorial github repository to handle game board formatting */
+
 .playertablecard {
     position: relative;
     margin-top: 5px;
@@ -74,14 +76,7 @@
     height: 96px;
 }
 
-/* game_play_area is 733x598 */
-
 /** Table layout **/
-
-
-/** Round summary popup **/
-
-.tableWindow th {text-align: center;}
 
 /** Prevents the top bar from shaking **/
 
@@ -160,20 +155,6 @@
     border-radius: 10px;
 }
 
-.playertable.larger_table {height: 160px;}
-.playertable_S {left: calc(50% - 70px); bottom: 0;}
-.playertable_SW {left: -5px; bottom: 0;}
-.playertable_W {left: -5px; top: 82.5px;}
-.playertable_W_X {left: -5px; top: 165px;}
-.playertable_NW {left: -5px; top: 0;}
-.playertable_N {left: calc(50% - 70px); top: 0;}
-.playertable_NE {right: -5px; top: 0;}
-.playertable_E {right: -5px; top: 82.5px;}
-.playertable_E_X {right: -5px; top: 165px;}
-.playertable_SE {right: -5px; bottom: 0;}
-.playertablecard {position: relative;}
-.playertable_W.larger_table, .playertable_E.larger_table {top: 92.5px;}
-.playertable_W_X.larger_table, .playertable_E_X.larger_table {top: 185px;}
 
 /** stock card (background size fix is needed for Safari) **/
 
@@ -190,12 +171,8 @@ html.show-unplayable-cards .unplayable {filter: brightness(0.7);}
     background-size: 1500% 400%;
     box-shadow: 1px 1px 2px;
 }
-.card_1 {background-image: url('img/cards_1.png'); border-radius: 4px; box-shadow: none;}
-.card_2 {background-image: url('img/cards_2.png'); border-radius: 4px;}
-.card_3 {background-image: url('img/cards_3.png'); border-radius: 4px;}
-.card_4 {background-image: url('img/cards_4.png'); border-radius: 10px;}
+
 .card, .playertablecard {width: 72px; height: 96px;}
-.card_2, .card_3, .card_4, .larger_card {width: 84px; height: 117px;}
 
 .cardontable {
     position: absolute;
@@ -203,7 +180,6 @@ html.show-unplayable-cards .unplayable {filter: brightness(0.7);}
     height: 96px;
     background-image: url('img/cards1.jpg'); 
 }
-
 
 
 /** hand zone **/
