@@ -61,8 +61,6 @@ $machinestates = [
         "transitions" => ["" => 2]
     ),
 
-    // Note: ID=2 => your first state
-
     2 => [
         "name" => "playerTurn",
         "description" => clienttranslate('${actplayer} must play at least one ${turnCard} card'),
