@@ -105,7 +105,9 @@ class Game extends \Table
      * by the action trigger on the front side with `bgaPerformAction`.
      *
      * @throws BgaUserException
-     */
+     */  
+
+    // Handles playing cards
     public function actPlayCard(#[IntArrayParam] array $card_ids): void
     {
         $player_id = $this->getActivePlayerId();
@@ -117,16 +119,20 @@ class Game extends \Table
         }
 
         $numCards = count($card_ids);
+
+        // Sends response back to client, js recieves and animates based on these args
         $this->notifyAllPlayers('playCard', clienttranslate('${player_name} plays ${numCards} ${turnCard}'), array (
                 'i18n' => array ('turnCard','numCards', 'cards' ),'player_id' => $player_id,
                 'player_name' => $this->getActivePlayerName(),
                 'cards' => $this->cards->getCards($card_ids),
                 'numCards' => $numCards,
                 'handSize' => count($this->cards->getPlayerHand($player_id)),
-                'turnCard' => VALUES_LABEL[$this->getGameStateValue("turnCard")/11] ));
+                'turnCard' => VALUES_LABEL[$this->getGameStateValue("turnCard")/11] 
+            ));
+
+        // Track who played how many cards, store what cards in database
         $this->setGameStateValue("numCardsPlayedLast", $numCards);
         $this->setGameStateValue("lastPlayer", $player_id);
-
         $this->logPrevCards($card_ids);
 
 
@@ -134,44 +140,21 @@ class Game extends \Table
         $this->gamestate->nextState('offerBSCall');
         }
 
-    public function actPass(): void
-    {
-        // Retrieve the active player ID.
-        $player_id = (int)$this->getActivePlayerId();
-
-        // Notify all players about the choice to pass.
-        $this->notifyAllPlayers("cardPlayed", clienttranslate('${player_name} passes'), [
-            "player_id" => $player_id,
-            "player_name" => $this->getActivePlayerName(),
-        ]);
-
-        // at the end of the action, move to the next state
-        $this->gamestate->nextState("pass");
-    }
-
+    // Handles BS call or decline of BS call
     public function actSubmitDecision(int $decision) : void
     {
         $player_id = $this->getCurrentPlayerId();
         
-        $this->playerActions[] = [
+        $playerActions = [
             'player_id' => $player_id,
             'action' => DECISIONS[$decision], 
             'timestamp' => time(),
         ];
 
-
         if (!empty($this->playerActions)) {
-            $sql = "INSERT INTO player_actions (player_id, action, timestamp) VALUES ";
-            $values = [];
+            $this->logPlayerAction($playerActions);
 
-            foreach ($this->playerActions as $entry) {
-                $values[] = "('".$entry['player_id']."','".$entry['action']."','".$entry['timestamp']."')";
-            }
-
-            $sql .= implode(',', $values);
-            $this->DbQuery($sql);
-
-        $this->gamestate->setPlayerNonMultiactive($player_id, "");
+            $this->gamestate->setPlayerNonMultiactive($player_id, "");
         }
     }
 
@@ -190,21 +173,13 @@ class Game extends \Table
             $this->setGameStateValue("lastBSCaller", $firstBSCall['player_id']);
             $this->gamestate->nextState('callBS');
         } else {
-            // echo "No 'callBS' action found.";
             $this->gamestate->nextState('nextPlayer');
         }
 
-        $sql = "DELETE FROM player_actions";
-        $this->DbQuery($sql);
+        $this->clearPlayerActions();
         $this->clearPrevCards();
-
-
     }
 
-    // public function actCallBS(int $caller_id):
-    // {
-        
-    // }
 
     /**
      * Game state arguments, example content.
@@ -216,8 +191,6 @@ class Game extends \Table
      */
     public function argPlayerTurn(): array
     {
-        // Get some values from the current game situation from the database.
-
         return [
             "playableCardsIds" => [1, 2],
             "turnCard" => VALUES_LABEL[$this->getGameStateValue("turnCard")/11],
@@ -226,8 +199,6 @@ class Game extends \Table
 
     public function argBSCall(): array
     {
-        // Get some values from the current game situation from the database.
-
         return [
             "numCardsPlayedLast" => $this->getGameStateValue("numCardsPlayedLast"),
             "caller" => $this->getPlayerNameById($this->getGameStateValue("lastBSCaller"))
@@ -236,9 +207,6 @@ class Game extends \Table
 
     public function argGivePile(): array
     {
-        // Get some values from the current game situation from the database.
-
-        
         return [
             "caller" => $this->getPlayerNameById($this->getGameStateValue("lastBSCaller")),
             "outcome" => OUTCOMES[$this->getGameStateValue("outcome")],
@@ -274,12 +242,10 @@ class Game extends \Table
         foreach ($player_ids as $player_id  ) {
             $numCards = count($this->cards->getPlayerHand($player_id));
             if ($numCards == 0) {
-                print_r($player_id);
-                print_r($numCards);
                 $this->dbSetScore($player_id, 1);
             }
         }
-        // Retrieve the active player ID.
+
         $player_id = (int)$this->getActivePlayerId();
 
         $this->setGameStateValue("turnCard", $this->updateTurnCard());
@@ -289,29 +255,25 @@ class Game extends \Table
         
         $this->activeNextPlayer();
 
-        ///// Test if this is the end of the game
+        // Test if this is the end of the game
         if ($this->getUniqueValueFromDb("SELECT MAX(player_score) FROM player") > 0){
-            $this->gamestate->nextState("endGame"); // Someone is out of cards, trigger the end of the game !
+            $this->gamestate->nextState("endGame"); // Someone is out of cards, trigger the end of the game
         } else{ 
             $this->gamestate->nextState("nextPlayer");} // Otherwise, continue
-    
-
-        // Go to another gamestate
-        // Here, we would detect if the game is over, and in this case use "endGame" transition instead 
-        // $this->gamestate->nextState("nextPlayer");
     }        
     
-    public function stCallBS(): void {
-
+    public function stCallBS(): void 
+    {
+        // Query cards played
         $card_ids_collection = $this->getCollectionFromDb("SELECT card_id FROM prev_turn_cards");
         $card_ids = [];
         foreach ($card_ids_collection as $index => $value) {
             $card_ids[] = $value['card_id'];
         }
-
         $cards = $this->cards->getCards($card_ids);
 
-
+        // This is done in a loop for the sake of display. Couldn't delay a series of animations on the js side, so we just call it
+        // on a card at a time.
         foreach ($cards as $card){
             $this->notifyAllPlayers('BSCalled', clienttranslate('${caller} called BS on ${player_name}'), array (
                 'i18n' => array ('caller','player_name', 'cards' ),'caller' => $this->getPlayerNameById($this->getGameStateValue("lastBSCaller")),
@@ -321,6 +283,7 @@ class Game extends \Table
 
         }
 
+        // Evaluate legitness of BS call
         $wasBS = false;
         $cards_called = $cards;
         $caller = ($this->getGameStateValue("lastBSCaller"));
@@ -341,14 +304,12 @@ class Game extends \Table
         }
 
         $this->gamestate->nextState("givePile");
-        
-
-        
     }
 
-    public function stGivePile(): void{
+    // Handles registering the giving of cards upon a call
+    public function stGivePile(): void
+    {
         $cards_to_give = $this->cards->getCardsInLocation('cardsontable');
-
         $card_ids = array_column($cards_to_give, 'id');
         $this->cards->moveCards($card_ids, 'hand', $this->getReceiverOfPile());
         $caller = ($this->getGameStateValue("lastBSCaller"));
@@ -356,17 +317,16 @@ class Game extends \Table
 
         
         if ( $receiver == $caller) {
-                $this->notifyAllPlayers('BSHandled', clienttranslate('It wasn\'t BS!'), array (
-                    'i18n' => array ('player', 'cards_to_give' ),
-                    'player_id' => $caller, 'cards' => $cards_to_give));
+            $this->notifyAllPlayers('BSHandled', clienttranslate('It wasn\'t BS!'), array (
+                'i18n' => array ('player', 'cards_to_give' ),
+                'player_id' => $caller, 'cards' => $cards_to_give));
     
-            } else {
-                $this->notifyAllPlayers('BSHandled', clienttranslate('It was BS!'), array (
-                    'i18n' => array ('player', 'cards_to_give' ),
-                    'player_id' => $receiver, 'cards' => $cards_to_give));
-            }
+        } else {
+            $this->notifyAllPlayers('BSHandled', clienttranslate('It was BS!'), array (
+                'i18n' => array ('player', 'cards_to_give' ),
+                'player_id' => $receiver, 'cards' => $cards_to_give));
+        }
     
-
         $this->gamestate->nextState("nextPlayer");
         }
 
@@ -381,6 +341,8 @@ class Game extends \Table
      * @param int $from_version
      * @return void
      */
+
+     // Starter code, not fooling with this
     public function upgradeTableDb($from_version)
     {
 //       if ($from_version <= 1404301345)
@@ -421,8 +383,6 @@ class Game extends \Table
             "SELECT `player_id` `id`, `player_score` `score` FROM `player`"
         );
 
-        // TODO: Gather all information about current game situation (visible by player $current_player_id).
-
         // Cards in player hand      
         $result['hand'] = $this->cards->getPlayerHand($current_player_id);
   
@@ -452,9 +412,8 @@ class Game extends \Table
      */
     protected function setupNewGame($players, $options = [])
     {
-        // Set the colors of the players with HTML color code. The default below is red/green/blue/orange/brown. The
-        // number of colors defined here must correspond to the maximum number of players allowed for the gams.
 
+        // Initialize gamestate values
         $this->setGameStateInitialValue( 'turnCard', 154 );
         $this->setGameStateInitialValue("numCardsPlayedLast", 50);
         $this->setGameStateInitialValue("lastBSCaller", 99);
@@ -462,6 +421,8 @@ class Game extends \Table
         $this->setGameStateInitialValue("receiver", 72);
         $this->setGameStateInitialValue("outcome", 40);
 
+        // Set the colors of the players with HTML color code. The default below is red/green/blue/orange/brown. The
+        // number of colors defined here must correspond to the maximum number of players allowed for the gams.
 
         $gameinfos = $this->getGameinfos();
         $default_colors = $gameinfos['player_colors'];
@@ -500,20 +461,6 @@ class Game extends \Table
 
         $this->cards->createCards($cards, 'deck');
         
-        
-        // Init global values with their initial values.
-
-
-        // Init game statistics.
-        //
-        // NOTE: statistics used in this file must be defined in your `stats.inc.php` file.
-
-        // Dummy content.
-        // $this->initStat("table", "table_teststat1", 0);
-        // $this->initStat("player", "player_teststat1", 0);
-
-        // TODO: Setup the initial game situation here.
-
         // Count the number of cards to deal
         $player_list = $this->getObjectListFromDB("SELECT player_id id FROM player", true);
         $deal_amount = floor($this->cards->countCardInLocation('deck') / count($player_list));
@@ -524,7 +471,7 @@ class Game extends \Table
         foreach ($player_list as $player_id) {
             $cards = $this->cards->pickCards($deal_amount, 'deck', $player_id);
 
-            // Notify player about his cards
+            // Notify player about their cards
             $this->notifyPlayer($player_id, 'newHand', '', ['cards' => $cards]);
         }
     
@@ -549,6 +496,8 @@ class Game extends \Table
      * @return void
      * @throws feException if the zombie mode is not supported at this game state.
      */
+
+     // Not publishing game so no need to implement, this is for when players quit the game. Can't be simulated in testing.
     protected function zombieTurn(array $state, int $active_player): void
     {
         $state_name = $state["name"];
@@ -591,9 +540,13 @@ class Game extends \Table
     {
         return $this->getGameStateValue("receiver");
     }
-    function dbSetScore ($player_id, $count) {$this->DbQuery("UPDATE player SET player_score = '$count' WHERE player_id = '$player_id'");}
+    function dbSetScore ($player_id, $count) 
+    {
+        $this->DbQuery("UPDATE player SET player_score = '$count' WHERE player_id = '$player_id'");
+    }
 
-    function checkForWin () {
+    function checkForWin () 
+    {
         //Increment score if we've gotten away with moving onto the next player and they have no cards.
         $idToNumCards = $this->cards->countCardsByLocationArgs('hand');
         foreach ($idToNumCards as $key => $value) {
@@ -603,10 +556,9 @@ class Game extends \Table
         }
     }
 
-    function logPrevCards($card_ids) {
-
+    function logPrevCards($card_ids) 
+    {
         $cards = $this->cards->getCards($card_ids);
-    
         $values = [];
     
         foreach ($cards as $key => $card) {
@@ -619,10 +571,28 @@ class Game extends \Table
         }
     }
 
-    function clearPrevCards() {
-
+    function clearPrevCards() 
+    {
         $sql = "DELETE FROM prev_turn_cards";
         $this->DbQuery($sql);
-
     }
+
+    function logPlayerAction($playerActions)
+    {
+        $sql = "INSERT INTO player_actions (player_id, action, timestamp) VALUES ";
+        $values = [];
+
+        foreach ($playerActions as $entry) {
+            $values[] = "('".$entry['player_id']."','".$entry['action']."','".$entry['timestamp']."')";
+        }
+
+        $sql .= implode(',', $values);
+        $this->DbQuery($sql);
+    }
+    function clearPlayerActions() 
+    {
+        $sql = "DELETE FROM player_actions";
+        $this->DbQuery($sql);
+    }
+
 }
