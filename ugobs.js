@@ -202,7 +202,7 @@ function (dojo, declare) {
 
        
 
-        // I don't do anything here, not really necessary for this gaem in my opinion
+        // I don't do anything here, not really necessary for this game in my opinion
         ///////////////////////////////////////////////////
         //// Game & client states
         
@@ -405,7 +405,6 @@ function (dojo, declare) {
                 if (this.checkAction(action, true)) {
                     // Can play a card
                     var card_ids = items.map(card => card.id).join(',');  
-                    console.log(card_ids)    
                     this.bgaPerformAction(action, {
                         card_ids : card_ids,
                     });
